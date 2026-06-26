@@ -6,7 +6,7 @@ from routes.vehicle_route import router as vehicle_router
 from routes.auth_route import router as auth_router
 from routes.supplier_route import router as supplier_router
 from routes.VehicleAssignments_route import router as vehicle_assignment_router
-
+from routes.staff_route import router as staff_router
 from routes.dashboard_route import router as dashboard_router
 
 # from routes.assignment_route import router as assignment_router
@@ -25,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(staff_router)
 app.include_router(dashboard_router)
 app.include_router(driver_router)
 app.include_router(vehicle_router)

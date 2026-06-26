@@ -29,7 +29,7 @@ class MasterFuelIssue(Base):
         UniqueConstraint('fuel_issue_name', name='master_fuel_issue_fuel_issue_name_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     fuel_issue_name: Mapped[str] = mapped_column(String(50), nullable=False)
 
     vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='fuel_issue')
@@ -42,11 +42,26 @@ class MasterFuelType(Base):
         UniqueConstraint('fuel_type_name', name='master_fuel_type_fuel_type_name_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     fuel_type_name: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
     vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='fuel_type')
+
+
+class MasterRoles(Base):
+    __tablename__ = 'master_roles'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_roles_pkey'),
+        UniqueConstraint('role_name', name='master_roles_role_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    role_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    users: Mapped[list['Users']] = relationship('Users', back_populates='role')
 
 
 class MasterServiceLocation(Base):
@@ -56,7 +71,7 @@ class MasterServiceLocation(Base):
         UniqueConstraint('location_name', name='master_service_location_location_name_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     location_name: Mapped[str] = mapped_column(String(100), nullable=False)
 
     suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='service_location')
@@ -70,12 +85,12 @@ class MasterStatus(Base):
         UniqueConstraint('status_name', name='master_status_status_name_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     status_name: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
-    drivers: Mapped[list['Drivers']] = relationship('Drivers', back_populates='status')
     suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='status')
+    drivers: Mapped[list['Drivers']] = relationship('Drivers', back_populates='status')
     vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='status')
 
 
@@ -86,7 +101,7 @@ class MasterSupplierType(Base):
         UniqueConstraint('supplier_type_name', name='master_supplier_type_supplier_type_name_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     supplier_type_name: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
@@ -100,48 +115,11 @@ class MasterVehicleMake(Base):
         UniqueConstraint('make_name', name='master_vehicle_make_make_name_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     make_name: Mapped[str] = mapped_column(String(100), nullable=False)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
     vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='vehicle_make')
-
-
-class Users(Base):
-    __tablename__ = 'users'
-    __table_args__ = (
-        PrimaryKeyConstraint('id', name='users_pkey'),
-        UniqueConstraint('email', name='users_email_key'),
-        UniqueConstraint('mobile', name='users_mobile_key')
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    full_name: Mapped[str] = mapped_column(String(150), nullable=False)
-    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
-    email: Mapped[Optional[str]] = mapped_column(String(150))
-    mobile: Mapped[Optional[str]] = mapped_column(String(15))
-    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-    mobile_verified: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
-    role: Mapped[Optional[str]] = mapped_column(String(50), server_default=text("'user'::character varying"))
-    is_blocked: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
-    last_login: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-
-    audit_logs: Mapped[list['AuditLogs']] = relationship('AuditLogs', back_populates='user')
-    drivers_created_by: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.created_by]', back_populates='users')
-    drivers_updated_by: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.updated_by]', back_populates='users_')
-    drivers_user: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.user_id]', back_populates='user')
-    managers: Mapped[list['Managers']] = relationship('Managers', back_populates='user')
-    notifications: Mapped[list['Notifications']] = relationship('Notifications', back_populates='user')
-    reports_download_history: Mapped[list['ReportsDownloadHistory']] = relationship('ReportsDownloadHistory', back_populates='user')
-    user_otps: Mapped[list['UserOtps']] = relationship('UserOtps', back_populates='user')
-    vehicles_created_by: Mapped[list['Vehicles']] = relationship('Vehicles', foreign_keys='[Vehicles.created_by]', back_populates='users')
-    vehicles_updated_by: Mapped[list['Vehicles']] = relationship('Vehicles', foreign_keys='[Vehicles.updated_by]', back_populates='users_')
-    parking_locations: Mapped[list['ParkingLocations']] = relationship('ParkingLocations', back_populates='users')
-    vehicle_assignment_history: Mapped[list['VehicleAssignmentHistory']] = relationship('VehicleAssignmentHistory', back_populates='users')
-    vehicle_assignments_created_by: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', foreign_keys='[VehicleAssignments.created_by]', back_populates='users')
-    vehicle_assignments_updated_by: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', foreign_keys='[VehicleAssignments.updated_by]', back_populates='users_')
 
 
 class VehicleDocuments(Base):
@@ -150,12 +128,90 @@ class VehicleDocuments(Base):
         PrimaryKeyConstraint('id', name='vehicle_documents_pkey'),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     vehicle_id: Mapped[Optional[int]] = mapped_column(Integer)
     document_type: Mapped[Optional[str]] = mapped_column(String(50))
     file_url: Mapped[Optional[str]] = mapped_column(Text)
     expiry_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
     uploaded_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+
+class Suppliers(Base):
+    __tablename__ = 'suppliers'
+    __table_args__ = (
+        ForeignKeyConstraint(['service_location_id'], ['master_service_location.id'], name='suppliers_service_location_id_fkey'),
+        ForeignKeyConstraint(['status_id'], ['master_status.id'], name='suppliers_status_id_fkey'),
+        ForeignKeyConstraint(['supplier_type_id'], ['master_supplier_type.id'], name='suppliers_supplier_type_id_fkey'),
+        PrimaryKeyConstraint('id', name='suppliers_pkey'),
+        UniqueConstraint('aadhaar_number', name='suppliers_aadhaar_number_key'),
+        UniqueConstraint('mobile', name='suppliers_mobile_key'),
+        UniqueConstraint('supplier_id', name='suppliers_supplier_id_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    supplier_id: Mapped[str] = mapped_column(String(50), nullable=False)
+    supplier_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    mobile: Mapped[Optional[str]] = mapped_column(String(15))
+    alternate_mobile: Mapped[Optional[str]] = mapped_column(String(15))
+    email: Mapped[Optional[str]] = mapped_column(String(100))
+    aadhaar_number: Mapped[Optional[str]] = mapped_column(String(20))
+    photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    current_address: Mapped[Optional[str]] = mapped_column(Text)
+    permanent_address: Mapped[Optional[str]] = mapped_column(Text)
+    city: Mapped[Optional[str]] = mapped_column(String(100))
+    state: Mapped[Optional[str]] = mapped_column(String(100))
+    pincode: Mapped[Optional[str]] = mapped_column(String(10))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    status_id: Mapped[Optional[int]] = mapped_column(Integer)
+    supplier_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    service_location_id: Mapped[Optional[int]] = mapped_column(Integer)
+    outstanding_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(12, 2))
+    remarks: Mapped[Optional[str]] = mapped_column(Text)
+
+    service_location: Mapped[Optional['MasterServiceLocation']] = relationship('MasterServiceLocation', back_populates='suppliers')
+    status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='suppliers')
+    supplier_type: Mapped[Optional['MasterSupplierType']] = relationship('MasterSupplierType', back_populates='suppliers')
+    vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='supplier')
+
+
+class Users(Base):
+    __tablename__ = 'users'
+    __table_args__ = (
+        ForeignKeyConstraint(['role_id'], ['master_roles.id'], name='users_role_id_fkey'),
+        PrimaryKeyConstraint('id', name='users_pkey'),
+        UniqueConstraint('email', name='users_email_key'),
+        UniqueConstraint('mobile', name='users_mobile_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    full_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    password_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    role_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    email: Mapped[Optional[str]] = mapped_column(String(150))
+    mobile: Mapped[Optional[str]] = mapped_column(String(15))
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    mobile_verified: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    is_blocked: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    last_login: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+
+    role: Mapped['MasterRoles'] = relationship('MasterRoles', back_populates='users')
+    audit_logs: Mapped[list['AuditLogs']] = relationship('AuditLogs', back_populates='user')
+    drivers: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.created_by]', back_populates='users')
+    drivers_: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.updated_by]', back_populates='users_')
+    drivers1: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.user_id]', back_populates='user')
+    managers: Mapped[list['Managers']] = relationship('Managers', back_populates='user')
+    notifications: Mapped[list['Notifications']] = relationship('Notifications', back_populates='user')
+    reports_download_history: Mapped[list['ReportsDownloadHistory']] = relationship('ReportsDownloadHistory', back_populates='user')
+    user_otps: Mapped[list['UserOtps']] = relationship('UserOtps', back_populates='user')
+    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', foreign_keys='[Vehicles.created_by]', back_populates='users')
+    vehicles_: Mapped[list['Vehicles']] = relationship('Vehicles', foreign_keys='[Vehicles.updated_by]', back_populates='users_')
+    parking_locations: Mapped[list['ParkingLocations']] = relationship('ParkingLocations', back_populates='users')
+    vehicle_assignment_history: Mapped[list['VehicleAssignmentHistory']] = relationship('VehicleAssignmentHistory', back_populates='users')
+    vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', foreign_keys='[VehicleAssignments.created_by]', back_populates='users')
+    vehicle_assignments_: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', foreign_keys='[VehicleAssignments.updated_by]', back_populates='users_')
 
 
 class AuditLogs(Base):
@@ -165,7 +221,7 @@ class AuditLogs(Base):
         PrimaryKeyConstraint('id', name='audit_logs_pkey')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     action: Mapped[Optional[str]] = mapped_column(String(100))
     table_name: Mapped[Optional[str]] = mapped_column(String(100))
@@ -193,7 +249,7 @@ class Drivers(Base):
         Index('idx_license_number', 'license_number')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     driver_code: Mapped[str] = mapped_column(String(50), nullable=False)
     full_name: Mapped[str] = mapped_column(String(150), nullable=False)
     mobile: Mapped[str] = mapped_column(String(15), nullable=False)
@@ -221,14 +277,14 @@ class Drivers(Base):
     adhaar_url: Mapped[Optional[str]] = mapped_column(String(500))
     status_id: Mapped[Optional[int]] = mapped_column(Integer)
 
-    users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='drivers_created_by')
+    users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='drivers')
     status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='drivers')
-    users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='drivers_updated_by')
-    user: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[user_id], back_populates='drivers_user')
+    users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='drivers_')
+    user: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[user_id], back_populates='drivers1')
     duty_status: Mapped[list['DutyStatus']] = relationship('DutyStatus', back_populates='driver')
     parking_locations: Mapped[list['ParkingLocations']] = relationship('ParkingLocations', back_populates='driver')
-    vehicle_assignment_history_new_driver: Mapped[list['VehicleAssignmentHistory']] = relationship('VehicleAssignmentHistory', foreign_keys='[VehicleAssignmentHistory.new_driver_id]', back_populates='new_driver')
-    vehicle_assignment_history_old_driver: Mapped[list['VehicleAssignmentHistory']] = relationship('VehicleAssignmentHistory', foreign_keys='[VehicleAssignmentHistory.old_driver_id]', back_populates='old_driver')
+    vehicle_assignment_history: Mapped[list['VehicleAssignmentHistory']] = relationship('VehicleAssignmentHistory', foreign_keys='[VehicleAssignmentHistory.new_driver_id]', back_populates='new_driver')
+    vehicle_assignment_history_: Mapped[list['VehicleAssignmentHistory']] = relationship('VehicleAssignmentHistory', foreign_keys='[VehicleAssignmentHistory.old_driver_id]', back_populates='old_driver')
     vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='driver')
 
 
@@ -240,7 +296,7 @@ class Managers(Base):
         UniqueConstraint('manager_code', name='managers_manager_code_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     manager_code: Mapped[Optional[str]] = mapped_column(String(50))
     department: Mapped[Optional[str]] = mapped_column(String(100))
@@ -256,7 +312,7 @@ class Notifications(Base):
         PrimaryKeyConstraint('id', name='notifications_pkey')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String(200))
     message: Mapped[Optional[str]] = mapped_column(Text)
@@ -273,52 +329,13 @@ class ReportsDownloadHistory(Base):
         PrimaryKeyConstraint('id', name='reports_download_history_pkey')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[Optional[int]] = mapped_column(Integer)
     report_name: Mapped[Optional[str]] = mapped_column(String(100))
     report_type: Mapped[Optional[str]] = mapped_column(String(50))
     downloaded_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
     user: Mapped[Optional['Users']] = relationship('Users', back_populates='reports_download_history')
-
-
-class Suppliers(Base):
-    __tablename__ = 'suppliers'
-    __table_args__ = (
-        ForeignKeyConstraint(['service_location_id'], ['master_service_location.id'], name='suppliers_service_location_id_fkey'),
-        ForeignKeyConstraint(['status_id'], ['master_status.id'], name='suppliers_status_id_fkey'),
-        ForeignKeyConstraint(['supplier_type_id'], ['master_supplier_type.id'], name='suppliers_supplier_type_id_fkey'),
-        PrimaryKeyConstraint('id', name='suppliers_pkey'),
-        UniqueConstraint('aadhaar_number', name='suppliers_aadhaar_number_key'),
-        UniqueConstraint('mobile', name='suppliers_mobile_key'),
-        UniqueConstraint('supplier_id', name='suppliers_supplier_id_key')
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    supplier_id: Mapped[str] = mapped_column(String(50), nullable=False)
-    supplier_name: Mapped[str] = mapped_column(String(150), nullable=False)
-    mobile: Mapped[Optional[str]] = mapped_column(String(15))
-    alternate_mobile: Mapped[Optional[str]] = mapped_column(String(15))
-    email: Mapped[Optional[str]] = mapped_column(String(100))
-    aadhaar_number: Mapped[Optional[str]] = mapped_column(String(20))
-    photo_url: Mapped[Optional[str]] = mapped_column(Text)
-    current_address: Mapped[Optional[str]] = mapped_column(Text)
-    permanent_address: Mapped[Optional[str]] = mapped_column(Text)
-    city: Mapped[Optional[str]] = mapped_column(String(100))
-    state: Mapped[Optional[str]] = mapped_column(String(100))
-    pincode: Mapped[Optional[str]] = mapped_column(String(10))
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-    status_id: Mapped[Optional[int]] = mapped_column(Integer)
-    supplier_type_id: Mapped[Optional[int]] = mapped_column(Integer)
-    service_location_id: Mapped[Optional[int]] = mapped_column(Integer)
-    outstanding_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(12, 2))
-    remarks: Mapped[Optional[str]] = mapped_column(Text)
-
-    service_location: Mapped[Optional['MasterServiceLocation']] = relationship('MasterServiceLocation', back_populates='suppliers')
-    status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='suppliers')
-    supplier_type: Mapped[Optional['MasterSupplierType']] = relationship('MasterSupplierType', back_populates='suppliers')
-    vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='supplier')
 
 
 class UserOtps(Base):
@@ -328,7 +345,7 @@ class UserOtps(Base):
         PrimaryKeyConstraint('id', name='user_otps_pkey')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, nullable=False)
     otp_code: Mapped[str] = mapped_column(String(6), nullable=False)
     expires_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False)
@@ -354,7 +371,7 @@ class Vehicles(Base):
         UniqueConstraint('vehicle_registration_number', name='vehicles_vehicle_registration_number_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     vehicle_registration_number: Mapped[str] = mapped_column(String(20), nullable=False)
     service_location_id: Mapped[Optional[int]] = mapped_column(Integer)
     vehicle_make_id: Mapped[Optional[int]] = mapped_column(Integer)
@@ -375,12 +392,12 @@ class Vehicles(Base):
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
-    users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicles_created_by')
+    users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicles')
     fuel_issue: Mapped[Optional['MasterFuelIssue']] = relationship('MasterFuelIssue', back_populates='vehicles')
     fuel_type: Mapped[Optional['MasterFuelType']] = relationship('MasterFuelType', back_populates='vehicles')
     service_location: Mapped[Optional['MasterServiceLocation']] = relationship('MasterServiceLocation', back_populates='vehicles')
     status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='vehicles')
-    users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='vehicles_updated_by')
+    users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='vehicles_')
     vehicle_make: Mapped[Optional['MasterVehicleMake']] = relationship('MasterVehicleMake', back_populates='vehicles')
     vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='vehicle')
 
@@ -392,7 +409,7 @@ class DutyStatus(Base):
         PrimaryKeyConstraint('id', name='duty_status_pkey')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     driver_id: Mapped[Optional[int]] = mapped_column(Integer)
     status: Mapped[Optional[str]] = mapped_column(String(50))
     remarks: Mapped[Optional[str]] = mapped_column(Text)
@@ -410,7 +427,7 @@ class ParkingLocations(Base):
         Index('idx_parking_vehicle', 'vehicle_id')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     vehicle_id: Mapped[Optional[int]] = mapped_column(Integer)
     driver_id: Mapped[Optional[int]] = mapped_column(Integer)
     latitude: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 8))
@@ -432,7 +449,7 @@ class VehicleAssignmentHistory(Base):
         PrimaryKeyConstraint('id', name='vehicle_assignment_history_pkey')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     vehicle_id: Mapped[Optional[int]] = mapped_column(Integer)
     old_driver_id: Mapped[Optional[int]] = mapped_column(Integer)
     new_driver_id: Mapped[Optional[int]] = mapped_column(Integer)
@@ -441,8 +458,8 @@ class VehicleAssignmentHistory(Base):
     changed_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
     users: Mapped[Optional['Users']] = relationship('Users', back_populates='vehicle_assignment_history')
-    new_driver: Mapped[Optional['Drivers']] = relationship('Drivers', foreign_keys=[new_driver_id], back_populates='vehicle_assignment_history_new_driver')
-    old_driver: Mapped[Optional['Drivers']] = relationship('Drivers', foreign_keys=[old_driver_id], back_populates='vehicle_assignment_history_old_driver')
+    new_driver: Mapped[Optional['Drivers']] = relationship('Drivers', foreign_keys=[new_driver_id], back_populates='vehicle_assignment_history')
+    old_driver: Mapped[Optional['Drivers']] = relationship('Drivers', foreign_keys=[old_driver_id], back_populates='vehicle_assignment_history_')
 
 
 class VehicleAssignments(Base):
@@ -457,7 +474,7 @@ class VehicleAssignments(Base):
         UniqueConstraint('unique_number', name='vehicle_assignments_unique_number_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     driver_id: Mapped[int] = mapped_column(Integer, nullable=False)
     vehicle_id: Mapped[int] = mapped_column(Integer, nullable=False)
     assigned_date: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
@@ -478,10 +495,10 @@ class VehicleAssignments(Base):
     transaction_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     unique_number: Mapped[Optional[str]] = mapped_column(String(50))
 
-    users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicle_assignments_created_by')
+    users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicle_assignments')
     driver: Mapped['Drivers'] = relationship('Drivers', back_populates='vehicle_assignments')
     supplier: Mapped[Optional['Suppliers']] = relationship('Suppliers', back_populates='vehicle_assignments')
-    users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='vehicle_assignments_updated_by')
+    users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='vehicle_assignments_')
     vehicle: Mapped['Vehicles'] = relationship('Vehicles', back_populates='vehicle_assignments')
     vehicle_emi_transactions: Mapped[list['VehicleEmiTransactions']] = relationship('VehicleEmiTransactions', back_populates='vehicle_assignment')
 
@@ -494,7 +511,7 @@ class VehicleEmiTransactions(Base):
         UniqueConstraint('transaction_number', name='vehicle_emi_transactions_transaction_number_key')
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     vehicle_assignment_id: Mapped[int] = mapped_column(Integer, nullable=False)
     emi_number: Mapped[int] = mapped_column(Integer, nullable=False)
     amount: Mapped[decimal.Decimal] = mapped_column(Numeric(12, 2), nullable=False)

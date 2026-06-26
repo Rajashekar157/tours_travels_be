@@ -1,21 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
-
-
-class RegisterRequest(BaseModel):
-    full_name: str
-    email: Optional[EmailStr] = None
-    mobile: str
-    password: str = Field(..., min_length=6, max_length=50)
-
-
-class SendOTPRequest(BaseModel):
-    mobile: str
-
-
-class VerifyOTPRequest(BaseModel):
-    mobile: str
-    otp: str
+from pydantic import BaseModel
 
 
 class LoginRequest(BaseModel):
@@ -28,4 +11,6 @@ class LoginResponse(BaseModel):
     token_type: str
     user_id: int
     full_name: str
-    role: str
+    mobile: str
+    role_id: int
+    role_name: str
