@@ -1,11 +1,11 @@
-from fastapi import (
-    APIRouter,
-    Depends
-)
-
+from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
 from core.database import get_db
+from services.vehicle_bulk_service import bulk_upload_vehicles_service
+
+
+
 
 from schemas.vehicle_schema import (
     VehicleCreate,
@@ -52,6 +52,12 @@ def list_vehicles(
     return get_vehicles(db)
 
 
+@router.post("/bulk-upload")
+def bulk_upload_vehicles(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    return bulk_upload_vehicles_service(file, db)
 @router.get("/{vehicle_id}")
 def fetch_vehicle(
     vehicle_id: int,
