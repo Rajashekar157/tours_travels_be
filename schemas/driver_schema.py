@@ -10,8 +10,7 @@ class DriverCreate(BaseModel):
     mobile: str
 
     user_id: Optional[int] = None
-    created_by: Optional[int] = None
-
+  
     email: Optional[EmailStr] = None
 
     aadhaar_number: Optional[str] = None
@@ -70,8 +69,7 @@ class DriverUpdate(BaseModel):
 
     status_id: Optional[int] = None
 
-    updated_by: Optional[int] = None
-
+  
 
 class DriverResponse(BaseModel):
     id: int

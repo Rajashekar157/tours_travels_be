@@ -91,7 +91,7 @@ def create_driver_service(db,payload,current_user):
 
     blood_group=payload.blood_group,
 
-    user_id=payload.user_id,
+    user_id=current_user["user_id"],
     created_by=current_user["user_id"],
     updated_by=current_user["user_id"],
 

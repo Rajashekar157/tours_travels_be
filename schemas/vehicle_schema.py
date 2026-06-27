@@ -36,7 +36,6 @@ class VehicleCreate(BaseModel):
 
     status_id: int
 
-    created_by: int
 
 
 class VehicleUpdate(BaseModel):
@@ -65,5 +64,3 @@ class VehicleUpdate(BaseModel):
     insurance_expiry_date: Optional[date] = None
 
     status_id: Optional[int] = None
-
-    updated_by: int

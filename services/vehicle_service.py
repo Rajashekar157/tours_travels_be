@@ -20,11 +20,12 @@ from models.generated_models import (
 )
 
 
+
 def create_vehicle(
     data: VehicleCreate,
-    db: Session
+    db: Session,
+    current_user
 ):
-
     existing = (
         db.query(Vehicles)
         .filter(
@@ -70,8 +71,8 @@ def create_vehicle(
         insurance_expiry_date=data.insurance_expiry_date,
 
         status_id=data.status_id,
-
-        created_by=data.created_by
+        created_by=current_user["user_id"],
+        updated_by=current_user["user_id"]
     )
 
     db.add(vehicle)
@@ -123,7 +124,8 @@ def get_vehicle(
 def update_vehicle(
     vehicle_id: int,
     data: VehicleUpdate,
-    db: Session
+    db: Session,
+    current_user
 ):
 
     vehicle = (
@@ -140,20 +142,13 @@ def update_vehicle(
             detail="Vehicle not found"
         )
 
-    for key, value in (
-        data.model_dump(
-            exclude_unset=True
-        ).items()
-    ):
-        setattr(
-            vehicle,
-            key,
-            value
-        )
+    for key, value in data.model_dump(exclude_unset=True).items():
+        setattr(vehicle, key, value)
 
-    db.commit()
-    db.refresh(vehicle)
+        vehicle.updated_by = current_user["user_id"]
 
+        db.commit()
+        db.refresh(vehicle)
     return vehicle
 
 

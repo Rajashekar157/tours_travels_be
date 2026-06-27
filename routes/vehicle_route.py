@@ -25,6 +25,7 @@ from services.vehicle_service import (
     get_statuses,
     get_suppliers
 )
+from utils.jwt_handler import get_current_user
 
 
 
@@ -34,14 +35,17 @@ router = APIRouter(
 )
 
 
+
 @router.post("/")
-def add_vehicle(
+def create_vehicle(
     data: VehicleCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     return create_vehicle(
         data,
-        db
+        db,
+        current_user
     )
 
 
@@ -111,19 +115,19 @@ def suppliers(
 ):
     return get_suppliers(db)
 
-
 @router.put("/{vehicle_id}")
-def edit_vehicle(
+def update_vehicle_route(
     vehicle_id: int,
     data: VehicleUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     return update_vehicle(
         vehicle_id,
         data,
-        db
+        db,
+        current_user
     )
-
 
 @router.delete("/{vehicle_id}")
 def remove_vehicle(
