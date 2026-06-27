@@ -23,14 +23,18 @@ router = APIRouter(
 )
 
 
+from utils.jwt_handler import get_current_user
+
 @router.post("/")
 def create_driver(
     payload: DriverCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
     return create_driver_service(
         db,
-        payload
+        payload,
+        current_user
     )
 
 

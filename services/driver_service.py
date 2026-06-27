@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from models.generated_models import Drivers
 
 
-def create_driver_service(db, payload):
+def create_driver_service(db,payload,current_user):
 
     existing_driver = (
         db.query(Drivers)
@@ -92,7 +92,8 @@ def create_driver_service(db, payload):
     blood_group=payload.blood_group,
 
     user_id=payload.user_id,
-    created_by=payload.created_by,
+    created_by=current_user["user_id"],
+    updated_by=current_user["user_id"],
 
     status_id=payload.status_id
 )
