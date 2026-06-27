@@ -20,67 +20,68 @@ from models.generated_models import (
 )
 
 
+from sqlalchemy.exc import SQLAlchemyError
 
-def create_vehicle(
-    data: VehicleCreate,
-    db: Session,
-    current_user
-):
-    existing = (
-        db.query(Vehicles)
-        .filter(
-            Vehicles.vehicle_registration_number
-            ==
-            data.vehicle_registration_number
+def create_vehicle(data: VehicleCreate, db: Session, current_user):
+
+    try:
+
+        existing = (
+            db.query(Vehicles)
+            .filter(
+                Vehicles.vehicle_registration_number ==
+                data.vehicle_registration_number
+            )
+            .first()
         )
-        .first()
-    )
 
-    if existing:
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail="Vehicle already exists"
+            )
+
+        vehicle = Vehicles(
+            service_location_id=data.service_location_id,
+            vehicle_make_id=data.vehicle_make_id,
+            fuel_type_id=data.fuel_type_id,
+            vehicle_registration_number=data.vehicle_registration_number,
+            vehicle_display_number=data.vehicle_display_number,
+            average_mileage=data.average_mileage,
+            year_of_make=data.year_of_make,
+            engine_number=data.engine_number,
+            chassis_number=data.chassis_number,
+            gps_enabled=data.gps_enabled,
+            fuel_issue_id=data.fuel_issue_id,
+            insurance_company=data.insurance_company,
+            insurance_policy_number=data.insurance_policy_number,
+            insurance_expiry_date=data.insurance_expiry_date,
+            status_id=data.status_id,
+            created_by=current_user["user_id"],
+            updated_by=current_user["user_id"]
+        )
+
+        db.add(vehicle)
+        db.commit()
+        db.refresh(vehicle)
+
+        return vehicle
+
+    except SQLAlchemyError as e:
+        db.rollback()
+        print("SQL ERROR:", str(e))
         raise HTTPException(
-            status_code=400,
-            detail="Vehicle already exists"
+            status_code=500,
+            detail=str(e)
         )
 
-    vehicle = Vehicles(
-        service_location_id=data.service_location_id,
-        vehicle_make_id=data.vehicle_make_id,
-
-        fuel_type_id=data.fuel_type_id,
-
-        vehicle_registration_number=data.vehicle_registration_number,
-
-        vehicle_display_number=data.vehicle_display_number,
-
-        average_mileage=data.average_mileage,
-
-        year_of_make=data.year_of_make,
-
-        engine_number=data.engine_number,
-
-        chassis_number=data.chassis_number,
-
-        gps_enabled=data.gps_enabled,
-
-        fuel_issue_id=data.fuel_issue_id,
-
-        insurance_company=data.insurance_company,
-
-        insurance_policy_number=data.insurance_policy_number,
-
-        insurance_expiry_date=data.insurance_expiry_date,
-
-        status_id=data.status_id,
-        created_by=current_user["user_id"],
-        updated_by=current_user["user_id"]
-    )
-
-    db.add(vehicle)
-    db.commit()
-    db.refresh(vehicle)
-
-    return vehicle
-
+    except Exception as e:
+        db.rollback()
+        print("GENERAL ERROR:", str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 def get_vehicles(db: Session):
 

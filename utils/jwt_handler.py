@@ -44,6 +44,13 @@ def get_current_user(
 ):
     token = credentials.credentials
     payload = decode_access_token(token)
+
+    if "user_id" not in payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Token missing user_id"
+        )
+
     return payload
 
 

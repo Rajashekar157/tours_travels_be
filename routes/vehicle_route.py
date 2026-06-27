@@ -13,11 +13,11 @@ from schemas.vehicle_schema import (
 )
 
 from services.vehicle_service import (
-    create_vehicle,
+    create_vehicle as create_vehicle_service,
     get_vehicles,
     get_vehicle,
-    update_vehicle,
-    delete_vehicle,
+     update_vehicle as update_vehicle_service,
+    delete_vehicle as delete_vehicle_service,
     get_service_locations,
     get_vehicle_makes,
     get_fuel_types,
@@ -42,12 +42,11 @@ def create_vehicle(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    return create_vehicle(
+    return create_vehicle_service(
         data,
         db,
         current_user
     )
-
 
 @router.get("/")
 def list_vehicles(
@@ -57,11 +56,14 @@ def list_vehicles(
 
 
 @router.post("/bulk-upload")
-def bulk_upload_vehicles(
+async def bulk_upload(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    return bulk_upload_vehicles_service(file, db)
+    return await bulk_upload_vehicles_service(file, db, current_user)
+
+
 @router.get("/{vehicle_id}")
 def fetch_vehicle(
     vehicle_id: int,
@@ -122,7 +124,7 @@ def update_vehicle_route(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    return update_vehicle(
+    return update_vehicle_service(
         vehicle_id,
         data,
         db,
@@ -130,11 +132,12 @@ def update_vehicle_route(
     )
 
 @router.delete("/{vehicle_id}")
-def remove_vehicle(
+def delete_vehicle_route(
     vehicle_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    return delete_vehicle(
+    return delete_vehicle_service(
         vehicle_id,
         db
     )
