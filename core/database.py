@@ -27,9 +27,10 @@ if not DATABASE_URL:
 # Use Render DATABASE_URL (postgresql+psycopg2://...)
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,   # avoids stale connections
-    pool_size=5,
-    max_overflow=10,
+    pool_pre_ping=True,    # avoids stale connections
+    pool_size=10,          # bumped from 5 — dashboard now opens up to 5 concurrent connections per request
+    max_overflow=20,       # bumped from 10 — headroom for traffic spikes
+    pool_timeout=10,       # fail fast (10s) instead of hanging indefinitely if pool is exhausted
     echo=False
 )
 

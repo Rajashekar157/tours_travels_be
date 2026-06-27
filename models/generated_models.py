@@ -22,6 +22,20 @@ t_dashboard_summary = Table(
 )
 
 
+t_dashboard_summary_mat = Table(
+    'dashboard_summary_mat', Base.metadata,
+    Column('row_id', Integer),
+    Column('total_drivers', BigInteger),
+    Column('total_vehicles', BigInteger),
+    Column('assigned_vehicles', BigInteger),
+    Column('unassigned_vehicles', BigInteger),
+    Column('active_drivers', BigInteger),
+    Column('inactive_drivers', BigInteger),
+    Column('outstanding_amount', Numeric),
+    Index('dashboard_summary_mat_row_id_idx', 'row_id', unique=True)
+)
+
+
 class MasterFuelIssue(Base):
     __tablename__ = 'master_fuel_issue'
     __table_args__ = (
@@ -145,7 +159,8 @@ class Suppliers(Base):
         PrimaryKeyConstraint('id', name='suppliers_pkey'),
         UniqueConstraint('aadhaar_number', name='suppliers_aadhaar_number_key'),
         UniqueConstraint('mobile', name='suppliers_mobile_key'),
-        UniqueConstraint('supplier_id', name='suppliers_supplier_id_key')
+        UniqueConstraint('supplier_id', name='suppliers_supplier_id_key'),
+        Index('idx_suppliers_outstanding', 'outstanding_amount')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -205,6 +220,7 @@ class Users(Base):
     managers: Mapped[list['Managers']] = relationship('Managers', back_populates='user')
     notifications: Mapped[list['Notifications']] = relationship('Notifications', back_populates='user')
     reports_download_history: Mapped[list['ReportsDownloadHistory']] = relationship('ReportsDownloadHistory', back_populates='user')
+    staff_permissions: Mapped[list['StaffPermissions']] = relationship('StaffPermissions', back_populates='user')
     user_otps: Mapped[list['UserOtps']] = relationship('UserOtps', back_populates='user')
     vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', foreign_keys='[Vehicles.created_by]', back_populates='users')
     vehicles_: Mapped[list['Vehicles']] = relationship('Vehicles', foreign_keys='[Vehicles.updated_by]', back_populates='users_')
@@ -246,6 +262,7 @@ class Drivers(Base):
         UniqueConstraint('license_number', name='drivers_license_number_key'),
         UniqueConstraint('mobile', name='drivers_mobile_key'),
         Index('idx_driver_mobile', 'mobile'),
+        Index('idx_drivers_license_expiry', 'license_expiry'),
         Index('idx_license_number', 'license_number')
     )
 
@@ -338,6 +355,27 @@ class ReportsDownloadHistory(Base):
     user: Mapped[Optional['Users']] = relationship('Users', back_populates='reports_download_history')
 
 
+class StaffPermissions(Base):
+    __tablename__ = 'staff_permissions'
+    __table_args__ = (
+        ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE', name='staff_permissions_user_id_fkey'),
+        PrimaryKeyConstraint('id', name='staff_permissions_pkey')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    dashboard: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    drivers: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    vehicles: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    suppliers: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    assignments: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    reports: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    settings: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    staff_management: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+
+    user: Mapped['Users'] = relationship('Users', back_populates='staff_permissions')
+
+
 class UserOtps(Base):
     __tablename__ = 'user_otps'
     __table_args__ = (
@@ -368,7 +406,8 @@ class Vehicles(Base):
         PrimaryKeyConstraint('id', name='vehicles_pkey'),
         UniqueConstraint('chassis_number', name='vehicles_chassis_number_key'),
         UniqueConstraint('engine_number', name='vehicles_engine_number_key'),
-        UniqueConstraint('vehicle_registration_number', name='vehicles_vehicle_registration_number_key')
+        UniqueConstraint('vehicle_registration_number', name='vehicles_vehicle_registration_number_key'),
+        Index('idx_vehicles_insurance_expiry', 'insurance_expiry_date')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -471,7 +510,10 @@ class VehicleAssignments(Base):
         ForeignKeyConstraint(['updated_by'], ['users.id'], name='vehicle_assignments_updated_by_fkey'),
         ForeignKeyConstraint(['vehicle_id'], ['vehicles.id'], name='vehicle_assignments_vehicle_id_fkey'),
         PrimaryKeyConstraint('id', name='vehicle_assignments_pkey'),
-        UniqueConstraint('unique_number', name='vehicle_assignments_unique_number_key')
+        UniqueConstraint('unique_number', name='vehicle_assignments_unique_number_key'),
+        Index('idx_vehicle_assignments_assigned_date', 'assigned_date'),
+        Index('idx_vehicle_assignments_driver_id', 'driver_id'),
+        Index('idx_vehicle_assignments_vehicle_id', 'vehicle_id')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
