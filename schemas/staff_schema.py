@@ -3,6 +3,21 @@ from typing import Optional
 
 
 # ==============================
+# PERMISSIONS
+# ==============================
+
+class StaffPermissionsSchema(BaseModel):
+    dashboard: bool = False
+    drivers: bool = False
+    vehicles: bool = False
+    suppliers: bool = False
+    assignments: bool = False
+    reports: bool = False
+    settings: bool = False
+    staff_management: bool = False
+
+
+# ==============================
 # CREATE STAFF
 # ==============================
 
@@ -12,6 +27,7 @@ class StaffCreate(BaseModel):
     mobile: str
     password: str = Field(..., min_length=6)
     role_id: int
+    permissions: StaffPermissionsSchema = StaffPermissionsSchema()
 
 
 # ==============================
@@ -24,6 +40,7 @@ class StaffUpdate(BaseModel):
     mobile: str
     role_id: int
     is_active: bool
+    permissions: StaffPermissionsSchema = StaffPermissionsSchema()
 
 
 # ==============================
@@ -71,6 +88,7 @@ class StaffResponse(BaseModel):
     role_id: int
     role_name: str
     is_active: bool
+    permissions: Optional[StaffPermissionsSchema] = None
 
     class Config:
         from_attributes = True

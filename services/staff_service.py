@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from models.generated_models import (
     Users,
     UserOtps,
-    MasterRoles
+    MasterRoles,
+    StaffPermissions
 )
 
 from utils.security import (
@@ -20,6 +21,32 @@ from utils.security import (
 OTP_CACHE = {}
 
 VERIFIED_MOBILES = set()
+
+
+# =====================================================
+# PERMISSIONS HELPER
+# =====================================================
+
+PERMISSION_FIELDS = [
+    "dashboard",
+    "drivers",
+    "vehicles",
+    "suppliers",
+    "assignments",
+    "reports",
+    "settings",
+    "staff_management",
+]
+
+
+def _permissions_to_dict(permissions: StaffPermissions | None) -> dict:
+    if not permissions:
+        return {field: False for field in PERMISSION_FIELDS}
+
+    return {
+        field: getattr(permissions, field, False)
+        for field in PERMISSION_FIELDS
+    }
 
 
 # =====================================================
@@ -116,6 +143,25 @@ def create_staff(data, db: Session):
 
     db.refresh(user)
 
+    # Create matching permissions row
+    permissions_data = data.permissions.dict() if data.permissions else {}
+
+    staff_permissions = StaffPermissions(
+        user_id=user.id,
+        dashboard=permissions_data.get("dashboard", False),
+        drivers=permissions_data.get("drivers", False),
+        vehicles=permissions_data.get("vehicles", False),
+        suppliers=permissions_data.get("suppliers", False),
+        assignments=permissions_data.get("assignments", False),
+        reports=permissions_data.get("reports", False),
+        settings=permissions_data.get("settings", False),
+        staff_management=permissions_data.get("staff_management", False),
+    )
+
+    db.add(staff_permissions)
+
+    db.commit()
+
     # Remove verified mobile after successful creation
     VERIFIED_MOBILES.discard(
         data.mobile
@@ -152,6 +198,12 @@ def get_staff(db: Session):
 
     for user, role in staffs:
 
+        permissions = (
+            db.query(StaffPermissions)
+            .filter(StaffPermissions.user_id == user.id)
+            .first()
+        )
+
         response.append({
 
             "id": user.id,
@@ -174,7 +226,9 @@ def get_staff(db: Session):
 
             "created_at": user.created_at,
 
-            "updated_at": user.updated_at
+            "updated_at": user.updated_at,
+
+            "permissions": _permissions_to_dict(permissions)
 
         })
 
@@ -209,6 +263,12 @@ def get_staff_by_id(id: int, db: Session):
         .first()
     )
 
+    permissions = (
+        db.query(StaffPermissions)
+        .filter(StaffPermissions.user_id == user.id)
+        .first()
+    )
+
     return {
 
         "id": user.id,
@@ -231,7 +291,9 @@ def get_staff_by_id(id: int, db: Session):
 
         "created_at": user.created_at,
 
-        "updated_at": user.updated_at
+        "updated_at": user.updated_at,
+
+        "permissions": _permissions_to_dict(permissions)
 
     }
 
@@ -344,6 +406,26 @@ def update_staff(id: int, data, db: Session):
 
     db.commit()
     db.refresh(user)
+
+    # Get-or-create the permissions row, then update it in place.
+    # (Safe even without a DB-level unique constraint on user_id,
+    # since we always fetch-then-write rather than blind-inserting.)
+    permissions_row = (
+        db.query(StaffPermissions)
+        .filter(StaffPermissions.user_id == id)
+        .first()
+    )
+
+    permissions_data = data.permissions.dict() if data.permissions else {}
+
+    if not permissions_row:
+        permissions_row = StaffPermissions(user_id=id)
+        db.add(permissions_row)
+
+    for field in PERMISSION_FIELDS:
+        setattr(permissions_row, field, permissions_data.get(field, False))
+
+    db.commit()
 
     return {
         "message": "Staff Updated Successfully"
