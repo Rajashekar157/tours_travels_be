@@ -3,6 +3,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from typing import Optional
 
 from models.generated_models import (
     Vehicles,
