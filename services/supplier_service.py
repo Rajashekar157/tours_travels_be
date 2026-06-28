@@ -4,7 +4,7 @@ from models.generated_models import (
     Suppliers,
     MasterSupplierType,
     MasterServiceLocation,
-    
+    MasterBranch,
 )
 
 
@@ -122,6 +122,21 @@ def get_service_locations(
     return (
         db.query(
             MasterServiceLocation
+        )
+        .all()
+    )
+
+
+# =========================
+# MASTER BRANCH
+# =========================
+
+def get_branches(
+    db: Session
+):
+    return (
+        db.query(
+            MasterBranch
         )
         .all()
     )
