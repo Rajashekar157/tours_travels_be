@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from core.database import get_db
+from utils.jwt_handler import get_current_user
 
 from schemas.VehicleAssignments_schema import (
     VehicleAssignmentCreate,
     VehicleAssignmentUpdate,
-    VehicleAssignmentResponse
 )
 
 from services.VehicleAssignments_service import (
@@ -23,59 +23,77 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/",
-    response_model=VehicleAssignmentResponse
-)
+# =====================================================
+# CREATE  — created_by from JWT
+# =====================================================
+
+@router.post("/")
 def create_assignment(
     data: VehicleAssignmentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     return create_vehicle_assignment(
         data,
-        db
+        db,
+        current_user["user_id"]
     )
 
+
+# =====================================================
+# GET ALL
+# =====================================================
 
 @router.get("/")
 def get_assignments(
     db: Session = Depends(get_db)
 ):
-    return get_vehicle_assignments(
-        db
-    )
+    return get_vehicle_assignments(db)
 
+
+# =====================================================
+# GET BY ID
+# =====================================================
 
 @router.get("/{assignment_id}")
 def get_assignment(
     assignment_id: int,
     db: Session = Depends(get_db)
 ):
-    return get_vehicle_assignment(
-        assignment_id,
-        db
-    )
+    return get_vehicle_assignment(assignment_id, db)
 
+
+# =====================================================
+# UPDATE  — updated_by from JWT
+# =====================================================
 
 @router.put("/{assignment_id}")
 def update_assignment(
     assignment_id: int,
     data: VehicleAssignmentUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     return update_vehicle_assignment(
         assignment_id,
         data,
-        db
+        db,
+        current_user["user_id"]
     )
 
+
+# =====================================================
+# DELETE  — updated_by tracked from JWT
+# =====================================================
 
 @router.delete("/{assignment_id}")
 def delete_assignment(
     assignment_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     return delete_vehicle_assignment(
         assignment_id,
-        db
+        db,
+        current_user["user_id"]
     )

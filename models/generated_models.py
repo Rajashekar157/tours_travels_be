@@ -31,8 +31,7 @@ t_dashboard_summary_mat = Table(
     Column('unassigned_vehicles', BigInteger),
     Column('active_drivers', BigInteger),
     Column('inactive_drivers', BigInteger),
-    Column('outstanding_amount', Numeric),
-    Index('dashboard_summary_mat_row_id_idx', 'row_id', unique=True)
+    Column('outstanding_amount', Numeric)
 )
 
 
@@ -52,6 +51,7 @@ class MasterBranch(Base):
 
     suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='branch')
     drivers: Mapped[list['Drivers']] = relationship('Drivers', back_populates='branch')
+    vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='branch')
 
 
 class MasterCompany(Base):
@@ -123,6 +123,8 @@ class MasterServiceLocation(Base):
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='service_location')
 
 
 class MasterStatus(Base):
@@ -633,8 +635,10 @@ class VehicleAssignmentHistory(Base):
 class VehicleAssignments(Base):
     __tablename__ = 'vehicle_assignments'
     __table_args__ = (
+        ForeignKeyConstraint(['branch_id'], ['master_branch.id'], name='vehicle_assignments_branch_id_fkey'),
         ForeignKeyConstraint(['created_by'], ['users.id'], name='vehicle_assignments_created_by_fkey'),
         ForeignKeyConstraint(['driver_id'], ['drivers.id'], name='vehicle_assignments_driver_id_fkey'),
+        ForeignKeyConstraint(['service_location_id'], ['master_service_location.id'], name='vehicle_assignments_service_location_id_fkey'),
         ForeignKeyConstraint(['supplier_id'], ['suppliers.id'], name='fk_vehicle_assignment_supplier'),
         ForeignKeyConstraint(['updated_by'], ['users.id'], name='vehicle_assignments_updated_by_fkey'),
         ForeignKeyConstraint(['vehicle_id'], ['vehicles.id'], name='vehicle_assignments_vehicle_id_fkey'),
@@ -665,9 +669,19 @@ class VehicleAssignments(Base):
     transaction_id: Mapped[Optional[str]] = mapped_column(String(100))
     transaction_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     unique_number: Mapped[Optional[str]] = mapped_column(String(50))
+    service_location_id: Mapped[Optional[int]] = mapped_column(Integer)
+    branch_id: Mapped[Optional[int]] = mapped_column(Integer)
+    vehicle_odometer_km: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(10, 2))
+    allotment_document_photo: Mapped[Optional[str]] = mapped_column(Text)
+    vehicle_photo_front: Mapped[Optional[str]] = mapped_column(Text)
+    vehicle_photo_back: Mapped[Optional[str]] = mapped_column(Text)
+    vehicle_photo_left: Mapped[Optional[str]] = mapped_column(Text)
+    vehicle_photo_right: Mapped[Optional[str]] = mapped_column(Text)
 
+    branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='vehicle_assignments')
     users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicle_assignments')
     driver: Mapped['Drivers'] = relationship('Drivers', back_populates='vehicle_assignments')
+    service_location: Mapped[Optional['MasterServiceLocation']] = relationship('MasterServiceLocation', back_populates='vehicle_assignments')
     supplier: Mapped[Optional['Suppliers']] = relationship('Suppliers', back_populates='vehicle_assignments')
     users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='vehicle_assignments_')
     vehicle: Mapped['Vehicles'] = relationship('Vehicles', back_populates='vehicle_assignments')

@@ -3,78 +3,112 @@ from typing import Optional
 from datetime import datetime, date
 
 
+# =====================================================
+# CREATE
+# =====================================================
+
 class VehicleAssignmentCreate(BaseModel):
+
+    # Core
     driver_id: int
     vehicle_id: int
-    supplier_id: int
+    supplier_id: Optional[int] = None
 
-    assignment_type: Optional[str] = None
+    # New fields from form
+    service_location_id: Optional[int] = None
+    branch_id: Optional[int] = None
+    vehicle_odometer_km: Optional[float] = None
+    assignment_type: Optional[str] = None  # Dispatch / Handover / Recovery
 
+    # EMI
     emi_amount: Optional[float] = None
     emi_tenure_months: Optional[int] = None
-
     emi_start_date: Optional[date] = None
     emi_end_date: Optional[date] = None
-
     transaction_id: Optional[str] = None
 
-    remarks: Optional[str] = None
+    # Photos
+    allotment_document_photo: Optional[str] = None
+    vehicle_photo_front: Optional[str] = None
+    vehicle_photo_back: Optional[str] = None
+    vehicle_photo_left: Optional[str] = None
+    vehicle_photo_right: Optional[str] = None
 
+    remarks: Optional[str] = None
     created_by: Optional[int] = None
 
 
+# =====================================================
+# UPDATE
+# =====================================================
+
 class VehicleAssignmentUpdate(BaseModel):
+
     driver_id: Optional[int] = None
     vehicle_id: Optional[int] = None
     supplier_id: Optional[int] = None
 
+    service_location_id: Optional[int] = None
+    branch_id: Optional[int] = None
+    vehicle_odometer_km: Optional[float] = None
     assignment_type: Optional[str] = None
 
     emi_amount: Optional[float] = None
     emi_tenure_months: Optional[int] = None
-
     emi_start_date: Optional[date] = None
     emi_end_date: Optional[date] = None
-
     transaction_id: Optional[str] = None
 
-    relieved_date: Optional[datetime] = None
+    allotment_document_photo: Optional[str] = None
+    vehicle_photo_front: Optional[str] = None
+    vehicle_photo_back: Optional[str] = None
+    vehicle_photo_left: Optional[str] = None
+    vehicle_photo_right: Optional[str] = None
 
+    relieved_date: Optional[datetime] = None
     is_active: Optional[bool] = None
     remarks: Optional[str] = None
-
     updated_by: Optional[int] = None
 
+
+# =====================================================
+# RESPONSE
+# =====================================================
 
 class VehicleAssignmentResponse(BaseModel):
 
     id: int
-    unique_number: Optional[str]
+    unique_number: Optional[str] = None
 
     driver_id: int
     vehicle_id: int
-    supplier_id: Optional[int]
+    supplier_id: Optional[int] = None
+
+    service_location_id: Optional[int] = None
+    branch_id: Optional[int] = None
+    vehicle_odometer_km: Optional[float] = None
+    assignment_type: Optional[str] = None
 
     assigned_date: datetime
 
-    assignment_type: Optional[str]
+    emi_amount: Optional[float] = None
+    emi_tenure_months: Optional[int] = None
+    emi_start_date: Optional[date] = None
+    emi_end_date: Optional[date] = None
+    transaction_id: Optional[str] = None
 
-    emi_amount: Optional[float]
-    emi_tenure_months: Optional[int]
+    allotment_document_photo: Optional[str] = None
+    vehicle_photo_front: Optional[str] = None
+    vehicle_photo_back: Optional[str] = None
+    vehicle_photo_left: Optional[str] = None
+    vehicle_photo_right: Optional[str] = None
 
-    emi_start_date: Optional[date]
-    emi_end_date: Optional[date]
+    relieved_date: Optional[datetime] = None
+    is_active: Optional[bool] = None
+    remarks: Optional[str] = None
 
-    transaction_id: Optional[str]
-
-    relieved_date: Optional[datetime]
-
-    is_active: Optional[bool]
-
-    remarks: Optional[str]
-
-    created_by: Optional[int]
-    updated_by: Optional[int]
+    created_by: Optional[int] = None
+    updated_by: Optional[int] = None
 
     class Config:
         from_attributes = True
