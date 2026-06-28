@@ -10,7 +10,7 @@ class DriverCreate(BaseModel):
     mobile: str
 
     user_id: Optional[int] = None
-  
+
     email: Optional[EmailStr] = None
 
     aadhaar_number: Optional[str] = None
@@ -30,10 +30,34 @@ class DriverCreate(BaseModel):
     state: Optional[str] = None
     pincode: Optional[str] = None
 
+    # location / branch
+    location_id: Optional[int] = None
+    branch_id: Optional[int] = None
+
+    # mandatory addresses
+    permanent_address: str
+    temporary_address: str
+
+    # pancard
+    pancard_number: Optional[str] = None
+    pancard_file_url: Optional[str] = None
+
+    # document uploads
+    bank_passbook_photo_url: Optional[str] = None
+    gas_bill_photo_url: Optional[str] = None
+    electricity_bill_photo_url: Optional[str] = None
+
+    # reference person (mandatory)
+    reference_person_name: str
+    reference_contact_number_1: str
+    reference_contact_number_2: str
+
     emergency_contact_name: Optional[str] = None
     emergency_contact_number: Optional[str] = None
 
     blood_group: Optional[str] = None
+
+    character_nature: Optional[str] = "Good"
 
     status_id: int
 
@@ -62,14 +86,32 @@ class DriverUpdate(BaseModel):
     state: Optional[str] = None
     pincode: Optional[str] = None
 
+    location_id: Optional[int] = None
+    branch_id: Optional[int] = None
+
+    permanent_address: Optional[str] = None
+    temporary_address: Optional[str] = None
+
+    pancard_number: Optional[str] = None
+    pancard_file_url: Optional[str] = None
+
+    bank_passbook_photo_url: Optional[str] = None
+    gas_bill_photo_url: Optional[str] = None
+    electricity_bill_photo_url: Optional[str] = None
+
+    reference_person_name: Optional[str] = None
+    reference_contact_number_1: Optional[str] = None
+    reference_contact_number_2: Optional[str] = None
+
     emergency_contact_name: Optional[str] = None
     emergency_contact_number: Optional[str] = None
 
     blood_group: Optional[str] = None
 
+    character_nature: Optional[str] = None
+
     status_id: Optional[int] = None
 
-  
 
 class DriverResponse(BaseModel):
     id: int
@@ -87,7 +129,67 @@ class DriverResponse(BaseModel):
 
     driver_photo_url: Optional[str] = None
 
+    location_id: Optional[int] = None
+    branch_id: Optional[int] = None
+
+    permanent_address: Optional[str] = None
+    temporary_address: Optional[str] = None
+
+    pancard_number: Optional[str] = None
+    pancard_file_url: Optional[str] = None
+
+    bank_passbook_photo_url: Optional[str] = None
+    gas_bill_photo_url: Optional[str] = None
+    electricity_bill_photo_url: Optional[str] = None
+
+    reference_person_name: Optional[str] = None
+    reference_contact_number_1: Optional[str] = None
+    reference_contact_number_2: Optional[str] = None
+
+    character_nature: Optional[str] = None
+
     status_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class MasterServiceLocationCreate(BaseModel):
+    location_name: str
+    is_active: Optional[bool] = True
+
+
+class MasterServiceLocationUpdate(BaseModel):
+    location_name: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class MasterServiceLocationResponse(BaseModel):
+    id: int
+    location_name: str
+    is_active: Optional[bool] = None
+
+    class Config:
+        from_attributes = True
+
+
+class MasterBranchCreate(BaseModel):
+    branch_name: str
+    location_id: int
+    is_active: Optional[bool] = True
+
+
+class MasterBranchUpdate(BaseModel):
+    branch_name: Optional[str] = None
+    location_id: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class MasterBranchResponse(BaseModel):
+    id: int
+    branch_name: str
+    location_id: int
+    is_active: Optional[bool] = None
 
     class Config:
         from_attributes = True

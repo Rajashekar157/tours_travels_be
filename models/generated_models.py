@@ -2,7 +2,7 @@ from typing import Optional
 import datetime
 import decimal
 
-from sqlalchemy import BigInteger, Boolean, Column, Date, DateTime, ForeignKeyConstraint, Index, Integer, Numeric, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Date, DateTime, ForeignKeyConstraint, Index, Integer, Numeric, PrimaryKeyConstraint, String, Table, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -36,6 +36,40 @@ t_dashboard_summary_mat = Table(
 )
 
 
+class MasterBranch(Base):
+    __tablename__ = 'master_branch'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_branch_pkey'),
+        UniqueConstraint('branch_name', name='master_branch_branch_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    branch_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    location_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='branch')
+    drivers: Mapped[list['Drivers']] = relationship('Drivers', back_populates='branch')
+
+
+class MasterCompany(Base):
+    __tablename__ = 'master_company'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_company_pkey'),
+        UniqueConstraint('company_name', name='master_company_company_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='company')
+
+
 class MasterFuelIssue(Base):
     __tablename__ = 'master_fuel_issue'
     __table_args__ = (
@@ -58,9 +92,8 @@ class MasterFuelType(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     fuel_type_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-
-    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='fuel_type')
 
 
 class MasterRoles(Base):
@@ -87,9 +120,9 @@ class MasterServiceLocation(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     location_name: Mapped[str] = mapped_column(String(100), nullable=False)
-
-    suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='service_location')
-    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='service_location')
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
 
 class MasterStatus(Base):
@@ -101,11 +134,8 @@ class MasterStatus(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     status_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-
-    suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='status')
-    drivers: Mapped[list['Drivers']] = relationship('Drivers', back_populates='status')
-    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='status')
 
 
 class MasterSupplierType(Base):
@@ -122,6 +152,38 @@ class MasterSupplierType(Base):
     suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='supplier_type')
 
 
+class MasterTaxStatus(Base):
+    __tablename__ = 'master_tax_status'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_tax_status_pkey'),
+        UniqueConstraint('tax_status_name', name='master_tax_status_tax_status_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tax_status_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='tax_status')
+
+
+class MasterTransmissionType(Base):
+    __tablename__ = 'master_transmission_type'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_transmission_type_pkey'),
+        UniqueConstraint('transmission_name', name='master_transmission_type_transmission_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    transmission_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='transmission_type')
+
+
 class MasterVehicleMake(Base):
     __tablename__ = 'master_vehicle_make'
     __table_args__ = (
@@ -131,9 +193,26 @@ class MasterVehicleMake(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     make_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
-    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='vehicle_make')
+
+class MasterVehicleModel(Base):
+    __tablename__ = 'master_vehicle_model'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='master_vehicle_model_pkey'),
+        UniqueConstraint('model_name', name='master_vehicle_model_model_name_key')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    model_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    vehicle_make_id: Mapped[Optional[int]] = mapped_column(Integer)
+    is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    vehicles: Mapped[list['Vehicles']] = relationship('Vehicles', back_populates='vehicle_model')
 
 
 class VehicleDocuments(Base):
@@ -153,26 +232,37 @@ class VehicleDocuments(Base):
 class Suppliers(Base):
     __tablename__ = 'suppliers'
     __table_args__ = (
-        ForeignKeyConstraint(['service_location_id'], ['master_service_location.id'], name='suppliers_service_location_id_fkey'),
-        ForeignKeyConstraint(['status_id'], ['master_status.id'], name='suppliers_status_id_fkey'),
+        CheckConstraint("agreement_status::text = ANY (ARRAY['Completed'::character varying, 'Not Completed'::character varying]::text[])", name='chk_suppliers_agreement_status'),
+        CheckConstraint('agreement_tenure_months IS NULL OR agreement_tenure_months > 48', name='chk_suppliers_agreement_tenure'),
+        CheckConstraint("character_nature::text = ANY (ARRAY['Excellent'::character varying, 'Very Good'::character varying, 'Good'::character varying, 'Fair'::character varying, 'Poor'::character varying]::text[])", name='chk_suppliers_character_nature'),
+        ForeignKeyConstraint(['branch_id'], ['master_branch.id'], name='fk_suppliers_branch'),
         ForeignKeyConstraint(['supplier_type_id'], ['master_supplier_type.id'], name='suppliers_supplier_type_id_fkey'),
         PrimaryKeyConstraint('id', name='suppliers_pkey'),
         UniqueConstraint('aadhaar_number', name='suppliers_aadhaar_number_key'),
         UniqueConstraint('mobile', name='suppliers_mobile_key'),
         UniqueConstraint('supplier_id', name='suppliers_supplier_id_key'),
-        Index('idx_suppliers_outstanding', 'outstanding_amount')
+        Index('idx_suppliers_branch_id', 'branch_id'),
+        Index('idx_suppliers_outstanding', 'outstanding_amount'),
+        Index('idx_suppliers_service_location_id', 'service_location_id')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     supplier_id: Mapped[str] = mapped_column(String(50), nullable=False)
     supplier_name: Mapped[str] = mapped_column(String(150), nullable=False)
-    mobile: Mapped[Optional[str]] = mapped_column(String(15))
+    mobile: Mapped[str] = mapped_column(String(15), nullable=False)
+    permanent_address: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''::text"))
+    temporary_address: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''::text"))
+    reference_person_name: Mapped[str] = mapped_column(String(150), nullable=False, server_default=text("''::character varying"))
+    reference_contact_number_1: Mapped[str] = mapped_column(String(15), nullable=False, server_default=text("''::character varying"))
+    reference_contact_number_2: Mapped[str] = mapped_column(String(15), nullable=False, server_default=text("''::character varying"))
+    emergency_contact_name: Mapped[str] = mapped_column(String(150), nullable=False, server_default=text("''::character varying"))
+    emergency_contact_number: Mapped[str] = mapped_column(String(15), nullable=False, server_default=text("''::character varying"))
+    character_nature: Mapped[str] = mapped_column(String(20), nullable=False, server_default=text("'Good'::character varying"))
     alternate_mobile: Mapped[Optional[str]] = mapped_column(String(15))
     email: Mapped[Optional[str]] = mapped_column(String(100))
     aadhaar_number: Mapped[Optional[str]] = mapped_column(String(20))
     photo_url: Mapped[Optional[str]] = mapped_column(Text)
     current_address: Mapped[Optional[str]] = mapped_column(Text)
-    permanent_address: Mapped[Optional[str]] = mapped_column(Text)
     city: Mapped[Optional[str]] = mapped_column(String(100))
     state: Mapped[Optional[str]] = mapped_column(String(100))
     pincode: Mapped[Optional[str]] = mapped_column(String(10))
@@ -183,9 +273,27 @@ class Suppliers(Base):
     service_location_id: Mapped[Optional[int]] = mapped_column(Integer)
     outstanding_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(12, 2))
     remarks: Mapped[Optional[str]] = mapped_column(Text)
+    supplier_code: Mapped[Optional[str]] = mapped_column(String(50))
+    branch_id: Mapped[Optional[int]] = mapped_column(Integer)
+    blood_group: Mapped[Optional[str]] = mapped_column(String(10))
+    date_of_birth: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    adhaar_url: Mapped[Optional[str]] = mapped_column(Text)
+    license_number: Mapped[Optional[str]] = mapped_column(String(100))
+    license_expiry: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    license_file_url: Mapped[Optional[str]] = mapped_column(Text)
+    pancard_number: Mapped[Optional[str]] = mapped_column(String(20))
+    pancard_file_url: Mapped[Optional[str]] = mapped_column(Text)
+    bank_passbook_photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    gas_bill_photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    electricity_bill_photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    joining_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    agreement_start_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    agreement_end_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    agreement_status: Mapped[Optional[str]] = mapped_column(String(20))
+    agreement_tenure_months: Mapped[Optional[int]] = mapped_column(Integer)
+    emi_completed_months: Mapped[Optional[int]] = mapped_column(Integer)
 
-    service_location: Mapped[Optional['MasterServiceLocation']] = relationship('MasterServiceLocation', back_populates='suppliers')
-    status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='suppliers')
+    branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='suppliers')
     supplier_type: Mapped[Optional['MasterSupplierType']] = relationship('MasterSupplierType', back_populates='suppliers')
     vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='supplier')
 
@@ -252,8 +360,9 @@ class AuditLogs(Base):
 class Drivers(Base):
     __tablename__ = 'drivers'
     __table_args__ = (
+        CheckConstraint("character_nature::text = ANY (ARRAY['Excellent'::character varying, 'Very Good'::character varying, 'Good'::character varying, 'Fair'::character varying, 'Poor'::character varying]::text[])", name='chk_character_nature'),
+        ForeignKeyConstraint(['branch_id'], ['master_branch.id'], name='fk_drivers_branch'),
         ForeignKeyConstraint(['created_by'], ['users.id'], name='drivers_created_by_fkey'),
-        ForeignKeyConstraint(['status_id'], ['master_status.id'], name='fk_drivers_status'),
         ForeignKeyConstraint(['updated_by'], ['users.id'], name='drivers_updated_by_fkey'),
         ForeignKeyConstraint(['user_id'], ['users.id'], name='drivers_user_id_fkey'),
         PrimaryKeyConstraint('id', name='drivers_pkey'),
@@ -270,6 +379,12 @@ class Drivers(Base):
     driver_code: Mapped[str] = mapped_column(String(50), nullable=False)
     full_name: Mapped[str] = mapped_column(String(150), nullable=False)
     mobile: Mapped[str] = mapped_column(String(15), nullable=False)
+    permanent_address: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''::text"))
+    temporary_address: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''::text"))
+    reference_person_name: Mapped[str] = mapped_column(String(150), nullable=False, server_default=text("''::character varying"))
+    reference_contact_number_1: Mapped[str] = mapped_column(String(15), nullable=False, server_default=text("''::character varying"))
+    reference_contact_number_2: Mapped[str] = mapped_column(String(15), nullable=False, server_default=text("''::character varying"))
+    character_nature: Mapped[str] = mapped_column(String(20), nullable=False, server_default=text("'Good'::character varying"))
     email: Mapped[Optional[str]] = mapped_column(String(150))
     aadhaar_number: Mapped[Optional[str]] = mapped_column(String(20))
     license_number: Mapped[Optional[str]] = mapped_column(String(100))
@@ -293,9 +408,16 @@ class Drivers(Base):
     blood_group: Mapped[Optional[str]] = mapped_column(String(10))
     adhaar_url: Mapped[Optional[str]] = mapped_column(String(500))
     status_id: Mapped[Optional[int]] = mapped_column(Integer)
+    location_id: Mapped[Optional[int]] = mapped_column(Integer)
+    branch_id: Mapped[Optional[int]] = mapped_column(Integer)
+    pancard_number: Mapped[Optional[str]] = mapped_column(String(20))
+    pancard_file_url: Mapped[Optional[str]] = mapped_column(Text)
+    gas_bill_photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    electricity_bill_photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    bank_passbook_photo_url: Mapped[Optional[str]] = mapped_column(Text)
 
+    branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='drivers')
     users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='drivers')
-    status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='drivers')
     users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='drivers_')
     user: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[user_id], back_populates='drivers1')
     duty_status: Mapped[list['DutyStatus']] = relationship('DutyStatus', back_populates='driver')
@@ -396,13 +518,13 @@ class UserOtps(Base):
 class Vehicles(Base):
     __tablename__ = 'vehicles'
     __table_args__ = (
+        ForeignKeyConstraint(['company_id'], ['master_company.id'], name='vehicles_company_id_fkey'),
         ForeignKeyConstraint(['created_by'], ['users.id'], name='vehicles_created_by_fkey'),
         ForeignKeyConstraint(['fuel_issue_id'], ['master_fuel_issue.id'], name='vehicles_fuel_issue_id_fkey'),
-        ForeignKeyConstraint(['fuel_type_id'], ['master_fuel_type.id'], name='vehicles_fuel_type_id_fkey'),
-        ForeignKeyConstraint(['service_location_id'], ['master_service_location.id'], name='vehicles_service_location_id_fkey'),
-        ForeignKeyConstraint(['status_id'], ['master_status.id'], name='vehicles_status_id_fkey'),
+        ForeignKeyConstraint(['tax_status_id'], ['master_tax_status.id'], name='vehicles_tax_status_id_fkey'),
+        ForeignKeyConstraint(['transmission_type_id'], ['master_transmission_type.id'], name='vehicles_transmission_type_id_fkey'),
         ForeignKeyConstraint(['updated_by'], ['users.id'], name='vehicles_updated_by_fkey'),
-        ForeignKeyConstraint(['vehicle_make_id'], ['master_vehicle_make.id'], name='vehicles_vehicle_make_id_fkey'),
+        ForeignKeyConstraint(['vehicle_model_id'], ['master_vehicle_model.id'], name='vehicles_vehicle_model_id_fkey'),
         PrimaryKeyConstraint('id', name='vehicles_pkey'),
         UniqueConstraint('chassis_number', name='vehicles_chassis_number_key'),
         UniqueConstraint('engine_number', name='vehicles_engine_number_key'),
@@ -430,14 +552,21 @@ class Vehicles(Base):
     updated_by: Mapped[Optional[int]] = mapped_column(Integer)
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    vehicle_model_id: Mapped[Optional[int]] = mapped_column(Integer)
+    seating_capacity: Mapped[Optional[int]] = mapped_column(Integer)
+    registration_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
+    vehicle_photo: Mapped[Optional[str]] = mapped_column(String(500))
+    transmission_type_id: Mapped[Optional[int]] = mapped_column(Integer)
+    tax_status_id: Mapped[Optional[int]] = mapped_column(Integer)
+    company_id: Mapped[Optional[int]] = mapped_column(Integer)
 
+    company: Mapped[Optional['MasterCompany']] = relationship('MasterCompany', back_populates='vehicles')
     users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicles')
     fuel_issue: Mapped[Optional['MasterFuelIssue']] = relationship('MasterFuelIssue', back_populates='vehicles')
-    fuel_type: Mapped[Optional['MasterFuelType']] = relationship('MasterFuelType', back_populates='vehicles')
-    service_location: Mapped[Optional['MasterServiceLocation']] = relationship('MasterServiceLocation', back_populates='vehicles')
-    status: Mapped[Optional['MasterStatus']] = relationship('MasterStatus', back_populates='vehicles')
+    tax_status: Mapped[Optional['MasterTaxStatus']] = relationship('MasterTaxStatus', back_populates='vehicles')
+    transmission_type: Mapped[Optional['MasterTransmissionType']] = relationship('MasterTransmissionType', back_populates='vehicles')
     users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='vehicles_')
-    vehicle_make: Mapped[Optional['MasterVehicleMake']] = relationship('MasterVehicleMake', back_populates='vehicles')
+    vehicle_model: Mapped[Optional['MasterVehicleModel']] = relationship('MasterVehicleModel', back_populates='vehicles')
     vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='vehicle')
 
 

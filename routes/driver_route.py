@@ -1,11 +1,17 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from typing import Optional
 from core.database import get_db
 
 from schemas.driver_schema import (
     DriverCreate,
-    DriverUpdate
+    DriverUpdate,
+    MasterServiceLocationCreate,
+    MasterServiceLocationUpdate,
+    MasterBranchCreate,
+    MasterBranchUpdate
+
+
 )
 
 from services.driver_service import (
@@ -14,7 +20,10 @@ from services.driver_service import (
     get_driver_service,
     update_driver_service,
     delete_driver_service,
-    search_driver_service
+    search_driver_service,
+    get_locations_service,
+    get_branches_service
+
 )
 
 router = APIRouter(
@@ -54,6 +63,21 @@ def search_driver(
         db,
         keyword
     )
+
+
+@router.get("/master-service-locations")
+def get_locations(
+    db: Session = Depends(get_db)
+):
+    return get_locations_service(db)
+
+@router.get("/master-branch")
+def get_branches(
+    location_id: Optional[int] = None,
+    db: Session = Depends(get_db)
+):
+    return get_branches_service(db, location_id)
+
 
 
 @router.get("/{driver_id}")

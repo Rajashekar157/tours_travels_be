@@ -16,10 +16,9 @@ from services.supplier_service import (
     update_supplier,
     delete_supplier,
     get_supplier_types,
-    get_service_locations
+    get_service_locations,
+    get_branches,
 )
-
-from models.generated_models import MasterSupplierType
 
 router = APIRouter(
     prefix="/suppliers",
@@ -32,13 +31,32 @@ router = APIRouter(
 # =========================
 
 @router.get("/master-supplier-type")
-def get_supplier_types(
+def fetch_supplier_types(
     db: Session = Depends(get_db)
 ):
-    return (
-        db.query(MasterSupplierType)
-        .all()
-    )
+    return get_supplier_types(db)
+
+
+# =========================
+# MASTER SERVICE LOCATION
+# =========================
+
+@router.get("/master-service-locations")
+def fetch_service_locations(
+    db: Session = Depends(get_db)
+):
+    return get_service_locations(db)
+
+
+# =========================
+# MASTER BRANCH
+# =========================
+
+@router.get("/master-branch")
+def fetch_branches(
+    db: Session = Depends(get_db)
+):
+    return get_branches(db)
 
 
 # =========================
@@ -72,12 +90,6 @@ def fetch_suppliers(
 ):
     return get_suppliers(db)
 
-
-@router.get("/master-service-locations")
-def fetch_service_locations(
-    db: Session = Depends(get_db)
-):
-    return get_service_locations(db)
 
 # =========================
 # GET SUPPLIER BY ID

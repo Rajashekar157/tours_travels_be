@@ -1,103 +1,100 @@
 from fastapi import HTTPException
-from models.generated_models import Drivers
+from models.generated_models import Drivers,MasterBranch,MasterServiceLocation
 
 
-def create_driver_service(db,payload,current_user):
+def create_driver_service(db, payload, current_user):
 
     existing_driver = (
         db.query(Drivers)
-        .filter(
-            Drivers.mobile == payload.mobile
-        )
+        .filter(Drivers.mobile == payload.mobile)
         .first()
     )
 
     if existing_driver:
-        raise HTTPException(
-            status_code=400,
-            detail="Mobile already exists"
-        )
+        raise HTTPException(status_code=400, detail="Mobile already exists")
 
     if payload.driver_code:
         existing_code = (
             db.query(Drivers)
-            .filter(
-                Drivers.driver_code == payload.driver_code
-            )
+            .filter(Drivers.driver_code == payload.driver_code)
             .first()
         )
 
         if existing_code:
-            raise HTTPException(
-                status_code=400,
-                detail="Driver code already exists"
-            )
+            raise HTTPException(status_code=400, detail="Driver code already exists")
 
     if payload.aadhaar_number:
         existing_aadhaar = (
             db.query(Drivers)
-            .filter(
-                Drivers.aadhaar_number == payload.aadhaar_number
-            )
+            .filter(Drivers.aadhaar_number == payload.aadhaar_number)
             .first()
         )
 
         if existing_aadhaar:
-            raise HTTPException(
-                status_code=400,
-                detail="Aadhaar number already exists"
-            )
+            raise HTTPException(status_code=400, detail="Aadhaar number already exists")
 
     if payload.license_number:
         existing_license = (
             db.query(Drivers)
-            .filter(
-                Drivers.license_number == payload.license_number
-            )
+            .filter(Drivers.license_number == payload.license_number)
             .first()
         )
 
         if existing_license:
-            raise HTTPException(
-                status_code=400,
-                detail="License number already exists"
-            )
+            raise HTTPException(status_code=400, detail="License number already exists")
 
     driver = Drivers(
-    driver_code=payload.driver_code,
-    full_name=payload.full_name,
-    mobile=payload.mobile,
-    email=payload.email,
+        driver_code=payload.driver_code,
+        full_name=payload.full_name,
+        mobile=payload.mobile,
+        email=payload.email,
 
-    aadhaar_number=payload.aadhaar_number,
-    adhaar_url=payload.adhaar_url,
+        aadhaar_number=payload.aadhaar_number,
+        adhaar_url=payload.adhaar_url,
 
-    license_number=payload.license_number,
-    license_file_url=payload.license_file_url,
-    license_expiry=payload.license_expiry,
+        license_number=payload.license_number,
+        license_file_url=payload.license_file_url,
+        license_expiry=payload.license_expiry,
 
-    driver_photo_url=payload.driver_photo_url,
+        driver_photo_url=payload.driver_photo_url,
 
-    date_of_birth=payload.date_of_birth,
-    joining_date=payload.joining_date,
+        date_of_birth=payload.date_of_birth,
+        joining_date=payload.joining_date,
 
-    address=payload.address,
-    city=payload.city,
-    state=payload.state,
-    pincode=payload.pincode,
+        address=payload.address,
+        city=payload.city,
+        state=payload.state,
+        pincode=payload.pincode,
 
-    emergency_contact_name=payload.emergency_contact_name,
-    emergency_contact_number=payload.emergency_contact_number,
+        location_id=payload.location_id,
+        branch_id=payload.branch_id,
 
-    blood_group=payload.blood_group,
+        permanent_address=payload.permanent_address,
+        temporary_address=payload.temporary_address,
 
-    user_id=current_user["user_id"],
-    created_by=current_user["user_id"],
-    updated_by=current_user["user_id"],
+        pancard_number=payload.pancard_number,
+        pancard_file_url=payload.pancard_file_url,
 
-    status_id=payload.status_id
-)
+        bank_passbook_photo_url=payload.bank_passbook_photo_url,
+        gas_bill_photo_url=payload.gas_bill_photo_url,
+        electricity_bill_photo_url=payload.electricity_bill_photo_url,
 
+        reference_person_name=payload.reference_person_name,
+        reference_contact_number_1=payload.reference_contact_number_1,
+        reference_contact_number_2=payload.reference_contact_number_2,
+
+        emergency_contact_name=payload.emergency_contact_name,
+        emergency_contact_number=payload.emergency_contact_number,
+
+        blood_group=payload.blood_group,
+        character_nature=payload.character_nature,
+
+        user_id=current_user["user_id"],
+        created_by=current_user["user_id"],
+        updated_by=current_user["user_id"],
+
+        status_id=payload.status_id
+    )
 
     db.add(driver)
     db.commit()
@@ -213,3 +210,28 @@ def search_driver_service(
         )
         .all()
     )
+
+
+
+
+
+def get_locations_service(db):
+
+    return (
+        db.query(MasterServiceLocation)
+        .filter(MasterServiceLocation.is_active == True)
+        .order_by(MasterServiceLocation.location_name.asc())
+        .all()
+    )
+
+
+
+def get_branches_service(db, location_id=None):
+
+    query = db.query(MasterBranch).filter(MasterBranch.is_active == True)
+
+    if location_id:
+        query = query.filter(MasterBranch.location_id == location_id)
+
+    return query.order_by(MasterBranch.branch_name.asc()).all()
+
