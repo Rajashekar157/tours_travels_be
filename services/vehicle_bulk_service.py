@@ -88,8 +88,8 @@ async def _load_dataframe(file: UploadFile) -> pd.DataFrame:
         # Normalize column names: lowercase, strip, spaces → underscores
         df.columns = [str(c).strip().lower().replace(" ", "_") for c in df.columns]
 
-        # Strip whitespace from all string values
-        df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+       # NEW - works on all pandas versions
+        df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
         # Drop fully empty rows
         df = df.dropna(how="all").reset_index(drop=True)
