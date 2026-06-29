@@ -26,7 +26,16 @@ class StaffCreate(BaseModel):
     email: Optional[EmailStr] = None
     mobile: str
     password: str = Field(..., min_length=6)
+    confirm_password: str = Field(..., min_length=6)
     role_id: int
+    staff_code: Optional[str] = None
+    designation: Optional[str] = None
+    service_state: Optional[str] = None
+    branch_id: Optional[int] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    pincode: Optional[str] = None
+    status: Optional[str] = "Active"  # Active | Deactive | Block Listed
     permissions: StaffPermissionsSchema = StaffPermissionsSchema()
 
 
@@ -39,33 +48,24 @@ class StaffUpdate(BaseModel):
     email: Optional[EmailStr] = None
     mobile: str
     role_id: int
-    is_active: bool
+    staff_code: Optional[str] = None
+    designation: Optional[str] = None
+    service_state: Optional[str] = None
+    branch_id: Optional[int] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    pincode: Optional[str] = None
+    status: Optional[str] = "Active"  # Active | Deactive | Block Listed
+    is_active: bool = True
     permissions: StaffPermissionsSchema = StaffPermissionsSchema()
 
 
 # ==============================
-# SEND OTP
-# ==============================
-
-class SendOTPRequest(BaseModel):
-    mobile: str
-
-
-# ==============================
-# VERIFY OTP
-# ==============================
-
-class VerifyOTPRequest(BaseModel):
-    mobile: str
-    otp: str
-
-
-# ==============================
-# STATUS
+# STATUS UPDATE
 # ==============================
 
 class StaffStatusUpdate(BaseModel):
-    is_active: bool
+    status: str  # Active | Deactive | Block Listed
 
 
 # ==============================
@@ -74,6 +74,7 @@ class StaffStatusUpdate(BaseModel):
 
 class StaffPasswordReset(BaseModel):
     password: str = Field(..., min_length=6)
+    confirm_password: str = Field(..., min_length=6)
 
 
 # ==============================
@@ -83,11 +84,21 @@ class StaffPasswordReset(BaseModel):
 class StaffResponse(BaseModel):
     id: int
     full_name: str
-    email: Optional[str]
-    mobile: Optional[str]
+    email: Optional[str] = None
+    mobile: Optional[str] = None
     role_id: int
     role_name: str
+    staff_code: Optional[str] = None
+    designation: Optional[str] = None
+    service_state: Optional[str] = None
+    branch_id: Optional[int] = None
+    branch_name: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    pincode: Optional[str] = None
+    status: Optional[str] = None
     is_active: bool
+    is_blocked: bool
     permissions: Optional[StaffPermissionsSchema] = None
 
     class Config:

@@ -1,8 +1,4 @@
-from fastapi import (
-    APIRouter,
-    Depends
-)
-
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -12,8 +8,6 @@ from schemas.staff_schema import (
     StaffUpdate,
     StaffStatusUpdate,
     StaffPasswordReset,
-    SendOTPRequest,
-    VerifyOTPRequest
 )
 
 from services.staff_service import (
@@ -25,8 +19,6 @@ from services.staff_service import (
     change_staff_status,
     reset_staff_password,
     get_roles,
-    send_otp,
-    verify_otp
 )
 
 router = APIRouter(
@@ -59,6 +51,17 @@ def fetch_staff(
 
 
 # ======================================================
+# GET ROLES  — must come before /{id} to avoid conflict
+# ======================================================
+
+@router.get("/roles/all")
+def fetch_roles(
+    db: Session = Depends(get_db)
+):
+    return get_roles(db)
+
+
+# ======================================================
 # GET STAFF BY ID
 # ======================================================
 
@@ -80,11 +83,7 @@ def edit_staff(
     data: StaffUpdate,
     db: Session = Depends(get_db)
 ):
-    return update_staff(
-        id,
-        data,
-        db
-    )
+    return update_staff(id, data, db)
 
 
 # ======================================================
@@ -96,10 +95,7 @@ def remove_staff(
     id: int,
     db: Session = Depends(get_db)
 ):
-    return delete_staff(
-        id,
-        db
-    )
+    return delete_staff(id, db)
 
 
 # ======================================================
@@ -112,11 +108,7 @@ def update_status(
     data: StaffStatusUpdate,
     db: Session = Depends(get_db)
 ):
-    return change_staff_status(
-        id,
-        data,
-        db
-    )
+    return change_staff_status(id, data, db)
 
 
 # ======================================================
@@ -129,51 +121,4 @@ def reset_password(
     data: StaffPasswordReset,
     db: Session = Depends(get_db)
 ):
-    return reset_staff_password(
-        id,
-        data,
-        db
-    )
-
-
-# ======================================================
-# SEND OTP
-# ======================================================
-
-@router.post("/send-otp")
-def send_staff_otp(
-    data: SendOTPRequest,
-    db: Session = Depends(get_db)
-):
-    return send_otp(
-        data,
-        db
-    )
-
-
-# ======================================================
-# VERIFY OTP
-# ======================================================
-
-@router.post("/verify-otp")
-def verify_staff_otp(
-    data: VerifyOTPRequest,
-    db: Session = Depends(get_db)
-):
-    return verify_otp(
-        data,
-        db
-    )
-
-
-# ======================================================
-# GET ROLES
-# ======================================================
-
-@router.get("/roles/all")
-def fetch_roles(
-    db: Session = Depends(get_db)
-):
-    return get_roles(db)
-
-    
+    return reset_staff_password(id, data, db)

@@ -50,6 +50,7 @@ class MasterBranch(Base):
     updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
     suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='branch')
+    users: Mapped[list['Users']] = relationship('Users', back_populates='branch')
     drivers: Mapped[list['Drivers']] = relationship('Drivers', back_populates='branch')
     vehicle_assignments: Mapped[list['VehicleAssignments']] = relationship('VehicleAssignments', back_populates='branch')
 
@@ -304,10 +305,15 @@ class Suppliers(Base):
 class Users(Base):
     __tablename__ = 'users'
     __table_args__ = (
+        CheckConstraint("status::text = ANY (ARRAY['Active'::character varying, 'Deactive'::character varying, 'Block Listed'::character varying]::text[])", name='users_status_check'),
+        ForeignKeyConstraint(['branch_id'], ['master_branch.id'], ondelete='SET NULL', name='users_branch_id_fkey'),
         ForeignKeyConstraint(['role_id'], ['master_roles.id'], name='users_role_id_fkey'),
         PrimaryKeyConstraint('id', name='users_pkey'),
         UniqueConstraint('email', name='users_email_key'),
-        UniqueConstraint('mobile', name='users_mobile_key')
+        UniqueConstraint('mobile', name='users_mobile_key'),
+        UniqueConstraint('staff_code', name='users_staff_code_key'),
+        Index('idx_users_branch_id', 'branch_id'),
+        Index('idx_users_staff_code', 'staff_code')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -322,7 +328,16 @@ class Users(Base):
     mobile_verified: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
     is_blocked: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
     last_login: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    service_state: Mapped[Optional[str]] = mapped_column(String(100))
+    branch_id: Mapped[Optional[int]] = mapped_column(Integer)
+    staff_code: Mapped[Optional[str]] = mapped_column(String(50))
+    designation: Mapped[Optional[str]] = mapped_column(String(100))
+    address: Mapped[Optional[str]] = mapped_column(Text)
+    city: Mapped[Optional[str]] = mapped_column(String(100))
+    pincode: Mapped[Optional[str]] = mapped_column(String(10))
+    status: Mapped[Optional[str]] = mapped_column(String(20), server_default=text("'Active'::character varying"))
 
+    branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='users')
     role: Mapped['MasterRoles'] = relationship('MasterRoles', back_populates='users')
     audit_logs: Mapped[list['AuditLogs']] = relationship('AuditLogs', back_populates='user')
     drivers: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.created_by]', back_populates='users')
