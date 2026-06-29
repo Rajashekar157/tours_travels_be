@@ -1,6 +1,7 @@
 from fastapi import HTTPException, Request
 from models.generated_models import Drivers, MasterBranch, MasterServiceLocation, MasterSupplierType
 
+UPLOAD_ROOT = "uploads/drivers"  # relative to app's cwd, matches your StaticFiles mount
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -211,3 +212,35 @@ def get_driver_documents_service(db, driver_id: int, request: Request):
         "total_uploaded":  len(uploaded_documents),
         "total_fields":    len(documents_with_urls),
     }
+
+
+
+def upload_driver_document_service(db, driver_id: int, field: str, file: UploadFile):
+    driver = db.query(Drivers).filter(Drivers.id == driver_id).first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
+
+    allowed_fields = {
+        "adhaar_url", "license_file_url", "pancard_file_url",
+        "bank_passbook_photo_url", "gas_bill_photo_url",
+        "electricity_bill_photo_url", "driver_photo_url",
+    }
+    if field not in allowed_fields:
+        raise HTTPException(status_code=400, detail="Invalid document field")
+
+    os.makedirs(UPLOAD_ROOT, exist_ok=True)
+
+    ext = os.path.splitext(file.filename)[1]
+    filename = f"{field}_{driver_id}{ext}"
+    disk_path = os.path.join(UPLOAD_ROOT, filename)
+
+    with open(disk_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Stored relative path — _build_file_url() turns this into a full URL later
+    stored_path = f"uploads/drivers/{filename}"
+    setattr(driver, field, stored_path)
+
+    db.commit()
+    db.refresh(driver)
+    return driver

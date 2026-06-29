@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 from core.database import get_db
-
+from fastapi import UploadFile, File
 from schemas.driver_schema import (
     DriverCreate,
     DriverUpdate,
@@ -23,6 +23,7 @@ from services.driver_service import (
     get_branches_service,
     get_supplier_type_service,
     get_driver_documents_service,
+    upload_driver_document_service
 )
 
 from utils.jwt_handler import get_current_user
@@ -69,7 +70,14 @@ def get_branches(
 def get_supplier_type(db: Session = Depends(get_db)):
     return get_supplier_type_service(db)
 
-
+@router.post("/{driver_id}/upload-document")
+def upload_driver_document(
+    driver_id: int,
+    field: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    return upload_driver_document_service(db, driver_id, field, file)
 # ── Must come BEFORE /{driver_id} so FastAPI doesn't match "documents" as an int ──
 @router.get("/{driver_id}/documents")
 def get_driver_documents(
