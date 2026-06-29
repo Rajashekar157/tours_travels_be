@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from models.generated_models import Drivers,MasterBranch,MasterServiceLocation
+from models.generated_models import Drivers, MasterBranch, MasterServiceLocation, MasterSupplierType
 
 
 def create_driver_service(db, payload, current_user):
@@ -85,6 +85,7 @@ def create_driver_service(db, payload, current_user):
 
         emergency_contact_name=payload.emergency_contact_name,
         emergency_contact_number=payload.emergency_contact_number,
+        supplier_type_id=payload.supplier_type_id,
 
         blood_group=payload.blood_group,
         character_nature=payload.character_nature,
@@ -212,9 +213,6 @@ def search_driver_service(
     )
 
 
-
-
-
 def get_locations_service(db):
 
     return (
@@ -223,7 +221,6 @@ def get_locations_service(db):
         .order_by(MasterServiceLocation.location_name.asc())
         .all()
     )
-
 
 
 def get_branches_service(db, location_id=None):
@@ -235,3 +232,19 @@ def get_branches_service(db, location_id=None):
 
     return query.order_by(MasterBranch.branch_name.asc()).all()
 
+
+def get_supplier_type_service(db):
+
+    supplier_type = (
+        db.query(MasterSupplierType)
+        .filter(MasterSupplierType.id == 1)
+        .first()
+    )
+
+    if not supplier_type:
+        raise HTTPException(
+            status_code=404,
+            detail="Supplier type not found"
+        )
+
+    return supplier_type

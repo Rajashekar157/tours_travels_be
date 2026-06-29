@@ -56,7 +56,7 @@ class DriverCreate(BaseModel):
     emergency_contact_number: Optional[str] = None
 
     blood_group: Optional[str] = None
-
+    supplier_type_id: Optional[int] = None
     character_nature: Optional[str] = "Good"
 
     status_id: int
@@ -107,6 +107,7 @@ class DriverUpdate(BaseModel):
     emergency_contact_number: Optional[str] = None
 
     blood_group: Optional[str] = None
+    supplier_type_id: Optional[int] = None
 
     character_nature: Optional[str] = None
 
@@ -145,6 +146,7 @@ class DriverResponse(BaseModel):
     reference_person_name: Optional[str] = None
     reference_contact_number_1: Optional[str] = None
     reference_contact_number_2: Optional[str] = None
+    supplier_type_id: Optional[int] = None
 
     character_nature: Optional[str] = None
 

@@ -8,6 +8,7 @@ from models.generated_models import (
     Drivers,
     Vehicles,
     Suppliers,
+    Users,
 )
 
 from schemas.VehicleAssignments_schema import (
@@ -96,7 +97,11 @@ def create_vehicle_assignment(
             detail=f"Vehicle {vehicle.vehicle_registration_number} is already assigned to another driver"
         )
 
+    # unique_number and transaction_id are always server-generated —
+    # the client never supplies either of these.
     unique_number = generate_unique_number(db)
+    transaction_id = f"TXN-{unique_number}"
+    now = datetime.utcnow()
 
     assignment = VehicleAssignments(
 
@@ -111,11 +116,8 @@ def create_vehicle_assignment(
         vehicle_odometer_km=data.vehicle_odometer_km,
         assignment_type=data.assignment_type,
 
-        emi_amount=data.emi_amount,
-        emi_tenure_months=data.emi_tenure_months,
-        emi_start_date=data.emi_start_date,
-        emi_end_date=data.emi_end_date,
-        transaction_id=data.transaction_id,
+        transaction_id=transaction_id,
+        transaction_date=now,
 
         allotment_document_photo=data.allotment_document_photo,
         vehicle_photo_front=data.vehicle_photo_front,
@@ -129,7 +131,7 @@ def create_vehicle_assignment(
         updated_by=current_user_id,   # ← JWT user
 
         is_active=True,
-        assigned_date=datetime.utcnow()
+        assigned_date=now
     )
 
     db.add(assignment)
@@ -139,6 +141,7 @@ def create_vehicle_assignment(
     return {
         "message": "Assignment created successfully",
         "unique_number": assignment.unique_number,
+        "transaction_id": assignment.transaction_id,
         "id": assignment.id
     }
 
@@ -184,11 +187,8 @@ def get_vehicle_assignments(db: Session):
             "assigned_date": x.assigned_date,
             "relieved_date": x.relieved_date,
 
-            "emi_amount": float(x.emi_amount) if x.emi_amount else None,
-            "emi_tenure_months": x.emi_tenure_months,
-            "emi_start_date": x.emi_start_date,
-            "emi_end_date": x.emi_end_date,
             "transaction_id": x.transaction_id,
+            "transaction_date": x.transaction_date,
 
             "allotment_document_photo": x.allotment_document_photo,
             "vehicle_photo_front": x.vehicle_photo_front,
@@ -201,6 +201,8 @@ def get_vehicle_assignments(db: Session):
 
             "created_by": x.created_by,
             "updated_by": x.updated_by,
+            "created_by_name": x.users.full_name if x.users else None,
+            "updated_by_name": x.users_.full_name if x.users_ else None,
         })
 
     return result
@@ -248,11 +250,8 @@ def get_vehicle_assignment(assignment_id: int, db: Session):
         "assigned_date": x.assigned_date,
         "relieved_date": x.relieved_date,
 
-        "emi_amount": float(x.emi_amount) if x.emi_amount else None,
-        "emi_tenure_months": x.emi_tenure_months,
-        "emi_start_date": x.emi_start_date,
-        "emi_end_date": x.emi_end_date,
         "transaction_id": x.transaction_id,
+        "transaction_date": x.transaction_date,
 
         "allotment_document_photo": x.allotment_document_photo,
         "vehicle_photo_front": x.vehicle_photo_front,
@@ -265,6 +264,8 @@ def get_vehicle_assignment(assignment_id: int, db: Session):
 
         "created_by": x.created_by,
         "updated_by": x.updated_by,
+        "created_by_name": x.users.full_name if x.users else None,
+        "updated_by_name": x.users_.full_name if x.users_ else None,
     }
 
 
@@ -317,6 +318,9 @@ def update_vehicle_assignment(
         if not supplier:
             raise HTTPException(status_code=404, detail="Supplier not found")
 
+    # transaction_id / transaction_date / unique_number are server-generated
+    # and aren't part of VehicleAssignmentUpdate, so there's nothing for a
+    # client to override here even via exclude_unset — they simply can't be sent.
     for key, value in data.model_dump(exclude_unset=True).items():
         setattr(assignment, key, value)
 

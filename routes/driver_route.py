@@ -22,7 +22,8 @@ from services.driver_service import (
     delete_driver_service,
     search_driver_service,
     get_locations_service,
-    get_branches_service
+    get_branches_service,
+    get_supplier_type_service
 
 )
 
@@ -78,6 +79,12 @@ def get_branches(
 ):
     return get_branches_service(db, location_id)
 
+
+@router.get("/master-supplier-type")
+def get_supplier_type(
+    db: Session = Depends(get_db)
+):
+    return get_supplier_type_service(db)
 
 
 @router.get("/{driver_id}")

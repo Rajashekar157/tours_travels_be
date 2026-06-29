@@ -152,6 +152,7 @@ class MasterSupplierType(Base):
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
     suppliers: Mapped[list['Suppliers']] = relationship('Suppliers', back_populates='supplier_type')
+    drivers: Mapped[list['Drivers']] = relationship('Drivers', back_populates='supplier_type')
 
 
 class MasterTaxStatus(Base):
@@ -365,6 +366,7 @@ class Drivers(Base):
         CheckConstraint("character_nature::text = ANY (ARRAY['Excellent'::character varying, 'Very Good'::character varying, 'Good'::character varying, 'Fair'::character varying, 'Poor'::character varying]::text[])", name='chk_character_nature'),
         ForeignKeyConstraint(['branch_id'], ['master_branch.id'], name='fk_drivers_branch'),
         ForeignKeyConstraint(['created_by'], ['users.id'], name='drivers_created_by_fkey'),
+        ForeignKeyConstraint(['supplier_type_id'], ['master_supplier_type.id'], name='fk_drivers_supplier_type'),
         ForeignKeyConstraint(['updated_by'], ['users.id'], name='drivers_updated_by_fkey'),
         ForeignKeyConstraint(['user_id'], ['users.id'], name='drivers_user_id_fkey'),
         PrimaryKeyConstraint('id', name='drivers_pkey'),
@@ -417,9 +419,11 @@ class Drivers(Base):
     gas_bill_photo_url: Mapped[Optional[str]] = mapped_column(Text)
     electricity_bill_photo_url: Mapped[Optional[str]] = mapped_column(Text)
     bank_passbook_photo_url: Mapped[Optional[str]] = mapped_column(Text)
+    supplier_type_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='drivers')
     users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='drivers')
+    supplier_type: Mapped[Optional['MasterSupplierType']] = relationship('MasterSupplierType', back_populates='drivers')
     users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='drivers_')
     user: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[user_id], back_populates='drivers1')
     duty_status: Mapped[list['DutyStatus']] = relationship('DutyStatus', back_populates='driver')
@@ -662,10 +666,6 @@ class VehicleAssignments(Base):
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
     supplier_id: Mapped[Optional[int]] = mapped_column(Integer)
-    emi_amount: Mapped[Optional[decimal.Decimal]] = mapped_column(Numeric(12, 2))
-    emi_tenure_months: Mapped[Optional[int]] = mapped_column(Integer)
-    emi_start_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
-    emi_end_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
     transaction_id: Mapped[Optional[str]] = mapped_column(String(100))
     transaction_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     unique_number: Mapped[Optional[str]] = mapped_column(String(50))

@@ -20,13 +20,6 @@ class VehicleAssignmentCreate(BaseModel):
     vehicle_odometer_km: Optional[float] = None
     assignment_type: Optional[str] = None  # Dispatch / Handover / Recovery
 
-    # EMI
-    emi_amount: Optional[float] = None
-    emi_tenure_months: Optional[int] = None
-    emi_start_date: Optional[date] = None
-    emi_end_date: Optional[date] = None
-    transaction_id: Optional[str] = None
-
     # Photos
     allotment_document_photo: Optional[str] = None
     vehicle_photo_front: Optional[str] = None
@@ -52,12 +45,6 @@ class VehicleAssignmentUpdate(BaseModel):
     branch_id: Optional[int] = None
     vehicle_odometer_km: Optional[float] = None
     assignment_type: Optional[str] = None
-
-    emi_amount: Optional[float] = None
-    emi_tenure_months: Optional[int] = None
-    emi_start_date: Optional[date] = None
-    emi_end_date: Optional[date] = None
-    transaction_id: Optional[str] = None
 
     allotment_document_photo: Optional[str] = None
     vehicle_photo_front: Optional[str] = None
@@ -91,11 +78,9 @@ class VehicleAssignmentResponse(BaseModel):
 
     assigned_date: datetime
 
-    emi_amount: Optional[float] = None
-    emi_tenure_months: Optional[int] = None
-    emi_start_date: Optional[date] = None
-    emi_end_date: Optional[date] = None
+    # Server-generated only — never accepted as client input
     transaction_id: Optional[str] = None
+    transaction_date: Optional[datetime] = None
 
     allotment_document_photo: Optional[str] = None
     vehicle_photo_front: Optional[str] = None
@@ -109,6 +94,8 @@ class VehicleAssignmentResponse(BaseModel):
 
     created_by: Optional[int] = None
     updated_by: Optional[int] = None
+    created_by_name: Optional[str] = None
+    updated_by_name: Optional[str] = None
 
     class Config:
         from_attributes = True
