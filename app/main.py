@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles   # ← ADD THIS
+import os                                      # ← ADD THIS
 
 from routes.driver_route import router as driver_router
 from routes.vehicle_route import router as vehicle_router
@@ -11,14 +13,13 @@ from routes.dashboard_route import router as dashboard_router
 from routes.report_route import router as report_router
 from routes.settings_route import router as settings_router
 from routes.notification_route import router as notification_router
-# from routes.assignment_route import router as assignment_router
-# from routes.search_controller import router as search_router
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-         "http://localhost:3000",
+        "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://147.93.103.145:3000",
         "https://tours-travels-1.onrender.com",
@@ -27,6 +28,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+os.makedirs("uploads", exist_ok=True)                                   
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")  
 
 app.include_router(auth_router)
 app.include_router(staff_router)
@@ -38,10 +42,3 @@ app.include_router(vehicle_assignment_router)
 app.include_router(report_router)
 app.include_router(settings_router)
 app.include_router(notification_router)
-
-
-# app.include_router(assignment_router)
-# app.include_router(search_router)
-
-
-

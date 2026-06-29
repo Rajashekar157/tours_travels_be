@@ -1,7 +1,10 @@
 # routes/vehicle_route.py
 
+import os
+import shutil
+import uuid
 from typing import Optional
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -27,6 +30,12 @@ from services.vehicle_service import (
 from utils.jwt_handler import get_current_user
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
+
+UPLOAD_DIR = "uploads/vehicles"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+ALLOWED_PHOTO_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
 
 
 # ----------- Master Dropdowns -----------
@@ -96,8 +105,42 @@ async def bulk_upload(
     return await bulk_upload_vehicles_service(file, db, current_user)
 
 
+# ----------- Photo Upload -----------
+# Returns the relative URL (e.g. "/uploads/vehicles/<uuid>.jpg") to store
+# on the vehicle record's vehicle_photo field. Does NOT touch the DB itself —
+# the frontend calls this first, then sends the returned path as part of the
+# create/update vehicle payload.
+
+@router.post("/upload-photo")
+async def upload_vehicle_photo(
+    file: UploadFile = File(...),
+    current_user=Depends(get_current_user)
+):
+    if file.content_type not in ALLOWED_PHOTO_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail="Only JPEG, PNG, or WEBP images are allowed"
+        )
+
+    contents = await file.read()
+    if len(contents) > MAX_PHOTO_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail="Photo must be smaller than 5MB"
+        )
+
+    ext = file.filename.split(".")[-1].lower()
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+
+    with open(filepath, "wb") as f:
+        f.write(contents)
+
+    return {"vehicle_photo": f"/uploads/vehicles/{filename}"}
+
+
 # ----------- CRUD -----------
-# /{vehicle_id} routes LAST so they don't swallow /master/* paths
+# /{vehicle_id} routes LAST so they don't swallow /master/* or /upload-photo paths
 
 @router.post("/")
 def create_vehicle(

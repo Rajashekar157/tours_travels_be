@@ -48,7 +48,8 @@ class VehicleCreate(BaseModel):
     insurance_policy_number: Optional[str] = None
     insurance_expiry_date: Optional[datetime.date] = None
 
-    # Photo
+    # Photo (stores the relative URL returned by /vehicles/upload-photo,
+    # e.g. "/uploads/vehicles/<uuid>.jpg")
     vehicle_photo: Optional[str] = None
 
     # Status
