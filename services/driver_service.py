@@ -94,7 +94,8 @@ def create_driver_service(db, payload, current_user):
         created_by=current_user["user_id"],
         updated_by=current_user["user_id"],
 
-        status_id=payload.status_id
+        status_id=payload.status_id,
+        is_active=payload.is_active if payload.is_active is not None else True
     )
 
     db.add(driver)
@@ -108,7 +109,6 @@ def get_drivers_service(db):
 
     return (
         db.query(Drivers)
-        .filter(Drivers.is_active == True)
         .order_by(Drivers.id.desc())
         .all()
     )
@@ -188,12 +188,11 @@ def delete_driver_service(
             detail="Driver not found"
         )
 
-    driver.is_active = False
-
+    db.delete(driver)
     db.commit()
 
     return {
-        "message": "Driver deactivated successfully"
+        "message": "Driver deleted successfully"
     }
 
 

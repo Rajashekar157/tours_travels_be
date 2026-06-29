@@ -60,6 +60,7 @@ class DriverCreate(BaseModel):
     character_nature: Optional[str] = "Good"
 
     status_id: int
+    is_active: Optional[bool] = True
 
 
 class DriverUpdate(BaseModel):
@@ -112,6 +113,7 @@ class DriverUpdate(BaseModel):
     character_nature: Optional[str] = None
 
     status_id: Optional[int] = None
+    is_active: Optional[bool] = None
 
 
 class DriverResponse(BaseModel):
@@ -151,6 +153,7 @@ class DriverResponse(BaseModel):
     character_nature: Optional[str] = None
 
     status_id: Optional[int] = None
+    is_active: Optional[bool] = None
 
     class Config:
         from_attributes = True
