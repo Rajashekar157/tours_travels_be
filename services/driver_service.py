@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Request
 from models.generated_models import Drivers, MasterBranch, MasterServiceLocation, MasterSupplierType
-
+from fastapi import UploadFile, File, HTTPException
 UPLOAD_ROOT = "uploads/drivers"  # relative to app's cwd, matches your StaticFiles mount
 
 # ── helpers ───────────────────────────────────────────────────────────────────
