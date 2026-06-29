@@ -10,7 +10,7 @@ from routes.staff_route import router as staff_router
 from routes.dashboard_route import router as dashboard_router
 from routes.report_route import router as report_router
 from routes.settings_route import router as settings_router
-
+from routes.notification_route import router as notification_router
 # from routes.assignment_route import router as assignment_router
 # from routes.search_controller import router as search_router
 
@@ -37,6 +37,7 @@ app.include_router(supplier_router)
 app.include_router(vehicle_assignment_router)
 app.include_router(report_router)
 app.include_router(settings_router)
+app.include_router(notification_router)
 
 
 # app.include_router(assignment_router)
