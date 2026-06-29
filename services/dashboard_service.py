@@ -58,11 +58,10 @@
 #     }
 
 
-
-
 from concurrent.futures import ThreadPoolExecutor
 from sqlalchemy import text
 from core.database import SessionLocal
+
 QUERIES = {
     # Materialized View
     "summary": """
@@ -76,7 +75,8 @@ QUERIES = {
             va.id,
             v.vehicle_registration_number,
             v.vehicle_display_number,
-            vm.make_name AS vehicle_make,
+            vmk.make_name AS vehicle_make,
+            vmd.model_name AS vehicle_model,
             d.full_name,
             d.mobile AS driver_mobile,
             va.assignment_type,
@@ -86,8 +86,10 @@ QUERIES = {
         FROM vehicle_assignments va
         JOIN vehicles v
             ON v.id = va.vehicle_id
-        LEFT JOIN master_vehicle_make vm
-            ON vm.id = v.vehicle_make_id
+        LEFT JOIN master_vehicle_make vmk
+            ON vmk.id = v.vehicle_make_id
+        LEFT JOIN master_vehicle_model vmd
+            ON vmd.id = v.vehicle_model_id
         JOIN drivers d
             ON d.id = va.driver_id
         ORDER BY va.assigned_date DESC
