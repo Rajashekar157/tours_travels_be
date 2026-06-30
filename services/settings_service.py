@@ -185,8 +185,8 @@ def mark_all_read(db: Session, user_id: int):
 def get_app_info():
     return {
         "app_name":      "FleetPro Management System",
-        "version":       "1.0.0",
-        "support_phone": "+91 9876543210",
+        "version":       "1.0",
+        "support_phone": "+91 8247582810",
         "support_email": "support@fleetpro.com",
         "faq_url":       "/help/faq",
         "privacy_url":   "/legal/privacy",

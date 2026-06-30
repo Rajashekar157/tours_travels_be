@@ -72,13 +72,6 @@ class VehicleCreate(BaseModel):
             raise ValueError("Year must be a 4-digit number")
         return v
 
-    @field_validator("average_mileage")
-    @classmethod
-    def mileage_must_be_above_22(cls, v):
-        if v is not None and v <= 22:
-            raise ValueError("Average mileage must be greater than 22")
-        return v
-
     @field_validator("seating_capacity")
     @classmethod
     def seating_must_be_above_50(cls, v):
@@ -150,13 +143,6 @@ class VehicleUpdate(BaseModel):
     def year_must_be_4_digits(cls, v):
         if v and (v < 1000 or v > 9999):
             raise ValueError("Year must be a 4-digit number")
-        return v
-
-    @field_validator("average_mileage")
-    @classmethod
-    def mileage_must_be_above_22(cls, v):
-        if v is not None and v <= 22:
-            raise ValueError("Average mileage must be greater than 22")
         return v
 
     @field_validator("seating_capacity")
