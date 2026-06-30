@@ -177,70 +177,85 @@ def get_supplier_type_service(db):
     return supplier_type
 
 
-# ── KEY FUNCTION: now accepts `request` to build absolute URLs ────────────────
 
 def get_driver_documents_service(db, driver_id: int, request: Request):
+
     driver = db.query(Drivers).filter(Drivers.id == driver_id).first()
+
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")
-
-    # Map of field_key → stored path
-    raw_documents = {
-        "adhaar_url":                 driver.adhaar_url,
-        "license_file_url":           driver.license_file_url,
-        "pancard_file_url":           driver.pancard_file_url,
-        "bank_passbook_photo_url":    driver.bank_passbook_photo_url,
-        "gas_bill_photo_url":         driver.gas_bill_photo_url,
-        "electricity_bill_photo_url": driver.electricity_bill_photo_url,
-        "driver_photo_url":           driver.driver_photo_url,
-    }
-
-    # Build full public URLs
-    documents_with_urls = {
-        key: _build_file_url(request, path)
-        for key, path in raw_documents.items()
-    }
-
-    uploaded_documents = {k: v for k, v in documents_with_urls.items() if v}
 
     return {
-        "driver_id":       driver.id,
-        "driver_code":     driver.driver_code,
-        "full_name":       driver.full_name,
-        "documents":       documents_with_urls,   # all fields (nulls included)
-        "uploaded":        uploaded_documents,     # only uploaded ones
-        "total_uploaded":  len(uploaded_documents),
-        "total_fields":    len(documents_with_urls),
+        "driver_id": driver.id,
+        "driver_code": driver.driver_code,
+        "full_name": driver.full_name,
+        "documents": {
+            "adhaar_url": _build_file_url(request, driver.adhaar_url),
+            "license_file_url": _build_file_url(request, driver.license_file_url),
+            "pancard_file_url": _build_file_url(request, driver.pancard_file_url),
+            "bank_passbook_photo_url": _build_file_url(request, driver.bank_passbook_photo_url),
+            "gas_bill_photo_url": _build_file_url(request, driver.gas_bill_photo_url),
+            "electricity_bill_photo_url": _build_file_url(request, driver.electricity_bill_photo_url),
+            "driver_photo_url": _build_file_url(request, driver.driver_photo_url),
+        }
     }
 
 
 
-def upload_driver_document_service(db, driver_id: int, field: str, file: UploadFile):
-    driver = db.query(Drivers).filter(Drivers.id == driver_id).first()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver not found")
+# def upload_driver_document_service(db, field: str, file: UploadFile):
+#     driver = db.query(Drivers).filter(Drivers.id == driver_id).first()
+#     if not driver:
+#         raise HTTPException(status_code=404, detail="Driver not found")
 
-    allowed_fields = {
-        "adhaar_url", "license_file_url", "pancard_file_url",
-        "bank_passbook_photo_url", "gas_bill_photo_url",
-        "electricity_bill_photo_url", "driver_photo_url",
-    }
-    if field not in allowed_fields:
-        raise HTTPException(status_code=400, detail="Invalid document field")
+#     allowed_fields = {
+#         "adhaar_url", "license_file_url", "pancard_file_url",
+#         "bank_passbook_photo_url", "gas_bill_photo_url",
+#         "electricity_bill_photo_url", "driver_photo_url",
+#     }
+#     if field not in allowed_fields:
+#         raise HTTPException(status_code=400, detail="Invalid document field")
 
+#     os.makedirs(UPLOAD_ROOT, exist_ok=True)
+
+#     ext = os.path.splitext(file.filename)[1]
+#     filename = f"{field}_{driver_id}{ext}"
+#     disk_path = os.path.join(UPLOAD_ROOT, filename)
+
+#     with open(disk_path, "wb") as buffer:
+#         shutil.copyfileobj(file.file, buffer)
+
+#     # Stored relative path — _build_file_url() turns this into a full URL later
+#     stored_path = f"uploads/drivers/{filename}"
+#     setattr(driver, field, stored_path)
+
+#     db.commit()
+#     db.refresh(driver)
+#     return driver
+
+
+
+def upload_driver_document_service(field: str, file: UploadFile):
+    import os
+    import shutil
+    import uuid
+
+    UPLOAD_ROOT = "uploads/drivers"
     os.makedirs(UPLOAD_ROOT, exist_ok=True)
 
-    ext = os.path.splitext(file.filename)[1]
-    filename = f"{field}_{driver_id}{ext}"
-    disk_path = os.path.join(UPLOAD_ROOT, filename)
+    ext = os.path.splitext(file.filename)[1].lower()
 
-    with open(disk_path, "wb") as buffer:
+    if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Only JPG, JPEG, PNG and WEBP files are allowed"
+        )
+
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(UPLOAD_ROOT, filename)
+
+    with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Stored relative path — _build_file_url() turns this into a full URL later
-    stored_path = f"uploads/drivers/{filename}"
-    setattr(driver, field, stored_path)
-
-    db.commit()
-    db.refresh(driver)
-    return driver
+    return {
+        "url": f"/uploads/drivers/{filename}"
+    }

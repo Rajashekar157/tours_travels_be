@@ -6,11 +6,10 @@ from datetime import datetime, date
 # =====================================================
 # CREATE
 # =====================================================
-
 class VehicleAssignmentCreate(BaseModel):
 
     # Core
-    driver_id: int
+    driver_id: Optional[int] = None
     vehicle_id: int
     supplier_id: Optional[int] = None
 
@@ -29,7 +28,6 @@ class VehicleAssignmentCreate(BaseModel):
 
     remarks: Optional[str] = None
     created_by: Optional[int] = None
-
 
 # =====================================================
 # UPDATE

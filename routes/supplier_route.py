@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -18,6 +18,9 @@ from services.supplier_service import (
     get_supplier_types,
     get_service_locations,
     get_branches,
+    get_supplier_documents_service,
+    upload_supplier_document_service,
+    attach_file_urls,
 )
 
 router = APIRouter(
@@ -31,9 +34,7 @@ router = APIRouter(
 # =========================
 
 @router.get("/master-supplier-type")
-def fetch_supplier_types(
-    db: Session = Depends(get_db)
-):
+def fetch_supplier_types(db: Session = Depends(get_db)):
     return get_supplier_types(db)
 
 
@@ -42,9 +43,7 @@ def fetch_supplier_types(
 # =========================
 
 @router.get("/master-service-locations")
-def fetch_service_locations(
-    db: Session = Depends(get_db)
-):
+def fetch_service_locations(db: Session = Depends(get_db)):
     return get_service_locations(db)
 
 
@@ -53,120 +52,99 @@ def fetch_service_locations(
 # =========================
 
 @router.get("/master-branch")
-def fetch_branches(
-    db: Session = Depends(get_db)
-):
+def fetch_branches(db: Session = Depends(get_db)):
     return get_branches(db)
+
+
+# =========================
+# UPLOAD SUPPLIER DOCUMENT
+# =========================
+
+@router.post("/upload-document")
+def upload_supplier_document(
+    field: str,
+    file: UploadFile = File(...),
+):
+    return upload_supplier_document_service(field, file)
 
 
 # =========================
 # CREATE SUPPLIER
 # =========================
 
-@router.post(
-    "/",
-    response_model=SupplierResponse
-)
+@router.post("/", response_model=SupplierResponse)
 def add_supplier(
     supplier: SupplierCreate,
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
 ):
-    return create_supplier(
-        db,
-        supplier
-    )
+    new_supplier = create_supplier(db, supplier)
+    return attach_file_urls(new_supplier, request)
 
 
 # =========================
 # GET ALL SUPPLIERS
 # =========================
 
-@router.get(
-    "/",
-    response_model=list[SupplierResponse]
-)
+@router.get("/", response_model=list[SupplierResponse])
 def fetch_suppliers(
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
 ):
-    return get_suppliers(db)
+    suppliers = get_suppliers(db)
+    return [attach_file_urls(s, request) for s in suppliers]
+
+
+# ── Must come BEFORE /{supplier_id} so FastAPI doesn't match "documents" as an int ──
+@router.get("/{supplier_id}/documents")
+def get_supplier_documents(
+    supplier_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return get_supplier_documents_service(db, supplier_id, request)
 
 
 # =========================
 # GET SUPPLIER BY ID
 # =========================
 
-@router.get(
-    "/{supplier_id}",
-    response_model=SupplierResponse
-)
+@router.get("/{supplier_id}", response_model=SupplierResponse)
 def fetch_supplier(
     supplier_id: int,
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
 ):
-    supplier = get_supplier(
-        db,
-        supplier_id
-    )
-
+    supplier = get_supplier(db, supplier_id)
     if not supplier:
-        raise HTTPException(
-            status_code=404,
-            detail="Supplier not found"
-        )
-
-    return supplier
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    return attach_file_urls(supplier, request)
 
 
 # =========================
 # UPDATE SUPPLIER
 # =========================
 
-@router.put(
-    "/{supplier_id}",
-    response_model=SupplierResponse
-)
+@router.put("/{supplier_id}", response_model=SupplierResponse)
 def edit_supplier(
     supplier_id: int,
     data: SupplierUpdate,
-    db: Session = Depends(get_db)
+    request: Request,
+    db: Session = Depends(get_db),
 ):
-    supplier = update_supplier(
-        db,
-        supplier_id,
-        data
-    )
-
+    supplier = update_supplier(db, supplier_id, data)
     if not supplier:
-        raise HTTPException(
-            status_code=404,
-            detail="Supplier not found"
-        )
-
-    return supplier
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    return attach_file_urls(supplier, request)
 
 
 # =========================
 # DELETE SUPPLIER
 # =========================
 
-@router.delete(
-    "/{supplier_id}"
-)
-def remove_supplier(
-    supplier_id: int,
-    db: Session = Depends(get_db)
-):
-    result = delete_supplier(
-        db,
-        supplier_id
-    )
-
+@router.delete("/{supplier_id}")
+def remove_supplier(supplier_id: int, db: Session = Depends(get_db)):
+    result = delete_supplier(db, supplier_id)
     if not result:
-        raise HTTPException(
-            status_code=404,
-            detail="Supplier not found"
-        )
-
-    return {
-        "message": "Supplier deleted successfully"
-    }
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    return {"message": "Supplier deleted successfully"}

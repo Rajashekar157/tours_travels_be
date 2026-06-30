@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, UploadFile, File
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -14,13 +14,28 @@ from services.VehicleAssignments_service import (
     get_vehicle_assignments,
     get_vehicle_assignment,
     update_vehicle_assignment,
-    delete_vehicle_assignment
+    delete_vehicle_assignment,
+    upload_vehicle_assignment_document_service,
+    get_vehicle_assignment_documents_service,
+    attach_file_urls,
 )
 
 router = APIRouter(
     prefix="/vehicle-assignments",
     tags=["Vehicle Assignments"]
 )
+
+
+# =====================================================
+# UPLOAD ASSIGNMENT DOCUMENT/PHOTO
+# =====================================================
+
+@router.post("/upload-document")
+def upload_assignment_document(
+    field: str,
+    file: UploadFile = File(...),
+):
+    return upload_vehicle_assignment_document_service(field, file)
 
 
 # =====================================================
@@ -46,9 +61,21 @@ def create_assignment(
 
 @router.get("/")
 def get_assignments(
+    request: Request,
     db: Session = Depends(get_db)
 ):
-    return get_vehicle_assignments(db)
+    assignments = get_vehicle_assignments(db)
+    return [attach_file_urls(a, request) for a in assignments]
+
+
+# ── Must come BEFORE /{assignment_id} so FastAPI doesn't match "documents" as an int ──
+@router.get("/{assignment_id}/documents")
+def get_assignment_documents(
+    assignment_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return get_vehicle_assignment_documents_service(db, assignment_id, request)
 
 
 # =====================================================
@@ -58,9 +85,11 @@ def get_assignments(
 @router.get("/{assignment_id}")
 def get_assignment(
     assignment_id: int,
+    request: Request,
     db: Session = Depends(get_db)
 ):
-    return get_vehicle_assignment(assignment_id, db)
+    assignment = get_vehicle_assignment(assignment_id, db)
+    return attach_file_urls(assignment, request)
 
 
 # =====================================================
