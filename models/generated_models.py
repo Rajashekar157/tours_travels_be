@@ -337,6 +337,8 @@ class Users(Base):
     city: Mapped[Optional[str]] = mapped_column(String(100))
     pincode: Mapped[Optional[str]] = mapped_column(String(10))
     status: Mapped[Optional[str]] = mapped_column(String(20), server_default=text("'Active'::character varying"))
+    active_session_token: Mapped[Optional[str]] = mapped_column(String(64))
+    login_attempt_count: Mapped[Optional[int]] = mapped_column(Integer, server_default=text('0'))
 
     branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='users')
     role: Mapped['MasterRoles'] = relationship('MasterRoles', back_populates='users')
