@@ -13,7 +13,7 @@ from routes.dashboard_route import router as dashboard_router
 from routes.report_route import router as report_router
 from routes.settings_route import router as settings_router
 from routes.notification_route import router as notification_router
-
+from routes.chat_routes import router as chat_router
 app = FastAPI()
 
 app.add_middleware(
@@ -42,3 +42,4 @@ app.include_router(vehicle_assignment_router)
 app.include_router(report_router)
 app.include_router(settings_router)
 app.include_router(notification_router)
+app.include_router(chat_router)

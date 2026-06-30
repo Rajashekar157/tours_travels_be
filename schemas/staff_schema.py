@@ -15,6 +15,7 @@ class StaffPermissionsSchema(BaseModel):
     reports: bool = False
     settings: bool = False
     staff_management: bool = False
+    messages: bool = False
 
 
 # ==============================

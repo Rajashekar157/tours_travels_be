@@ -1,3 +1,4 @@
+
 from typing import Optional
 import datetime
 import decimal
@@ -347,6 +348,8 @@ class Users(Base):
     drivers_: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.updated_by]', back_populates='users_')
     drivers1: Mapped[list['Drivers']] = relationship('Drivers', foreign_keys='[Drivers.user_id]', back_populates='user')
     managers: Mapped[list['Managers']] = relationship('Managers', back_populates='user')
+    messages: Mapped[list['Messages']] = relationship('Messages', foreign_keys='[Messages.receiver_id]', back_populates='receiver')
+    messages_: Mapped[list['Messages']] = relationship('Messages', foreign_keys='[Messages.sender_id]', back_populates='sender')
     notifications: Mapped[list['Notifications']] = relationship('Notifications', back_populates='user')
     reports_download_history: Mapped[list['ReportsDownloadHistory']] = relationship('ReportsDownloadHistory', back_populates='user')
     staff_permissions: Mapped[list['StaffPermissions']] = relationship('StaffPermissions', back_populates='user')
@@ -468,6 +471,27 @@ class Managers(Base):
     user: Mapped[Optional['Users']] = relationship('Users', back_populates='managers')
 
 
+class Messages(Base):
+    __tablename__ = 'messages'
+    __table_args__ = (
+        ForeignKeyConstraint(['receiver_id'], ['users.id'], name='messages_receiver_id_fkey'),
+        ForeignKeyConstraint(['sender_id'], ['users.id'], name='messages_sender_id_fkey'),
+        PrimaryKeyConstraint('id', name='messages_pkey'),
+        Index('idx_messages_receiver_sender', 'receiver_id', 'sender_id'),
+        Index('idx_messages_sender_receiver', 'sender_id', 'receiver_id')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sender_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    receiver_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    is_read: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    receiver: Mapped['Users'] = relationship('Users', foreign_keys=[receiver_id], back_populates='messages')
+    sender: Mapped['Users'] = relationship('Users', foreign_keys=[sender_id], back_populates='messages_')
+
+
 class Notifications(Base):
     __tablename__ = 'notifications'
     __table_args__ = (
@@ -510,6 +534,7 @@ class StaffPermissions(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    messages: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text('false'))
     dashboard: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
     drivers: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
     vehicles: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))

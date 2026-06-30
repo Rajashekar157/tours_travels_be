@@ -27,6 +27,7 @@ PERMISSION_FIELDS = [
     "reports",
     "settings",
     "staff_management",
+    "messages",
 ]
 
 VALID_STATUSES = ["Active", "Deactive", "Block Listed"]

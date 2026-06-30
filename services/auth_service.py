@@ -13,6 +13,7 @@ from utils.jwt_handler import create_access_token
 PERMISSION_FIELDS = [
     "dashboard", "drivers", "vehicles", "suppliers",
     "assignments", "reports", "settings", "staff_management",
+    "messages",
 ]
 
 MAX_LOGIN_ATTEMPTS_BEFORE_FORCE = 3
