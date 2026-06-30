@@ -237,7 +237,7 @@ class Suppliers(Base):
     __tablename__ = 'suppliers'
     __table_args__ = (
         CheckConstraint("agreement_status::text = ANY (ARRAY['Completed'::character varying, 'Not Completed'::character varying]::text[])", name='chk_suppliers_agreement_status'),
-        CheckConstraint('agreement_tenure_months IS NULL OR agreement_tenure_months > 48', name='chk_suppliers_agreement_tenure'),
+        CheckConstraint('agreement_tenure_months IS NULL OR agreement_tenure_months < 48', name='chk_suppliers_agreement_tenure'),
         CheckConstraint("character_nature::text = ANY (ARRAY['Excellent'::character varying, 'Very Good'::character varying, 'Good'::character varying, 'Fair'::character varying, 'Poor'::character varying]::text[])", name='chk_suppliers_character_nature'),
         ForeignKeyConstraint(['branch_id'], ['master_branch.id'], name='fk_suppliers_branch'),
         ForeignKeyConstraint(['supplier_type_id'], ['master_supplier_type.id'], name='suppliers_supplier_type_id_fkey'),
@@ -294,8 +294,8 @@ class Suppliers(Base):
     agreement_start_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
     agreement_end_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
     agreement_status: Mapped[Optional[str]] = mapped_column(String(20))
-    agreement_tenure_months: Mapped[Optional[int]] = mapped_column(Integer)
     emi_completed_months: Mapped[Optional[int]] = mapped_column(Integer)
+    agreement_tenure_months: Mapped[Optional[int]] = mapped_column(Integer)
 
     branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='suppliers')
     supplier_type: Mapped[Optional['MasterSupplierType']] = relationship('MasterSupplierType', back_populates='suppliers')
@@ -320,6 +320,7 @@ class Users(Base):
     full_name: Mapped[str] = mapped_column(String(150), nullable=False)
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     role_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    photo_url: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''::text"))
     email: Mapped[Optional[str]] = mapped_column(String(150))
     mobile: Mapped[Optional[str]] = mapped_column(String(15))
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))

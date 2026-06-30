@@ -1,5 +1,7 @@
+import os
+import uuid
 from datetime import datetime
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from models.generated_models import (
@@ -28,6 +30,13 @@ PERMISSION_FIELDS = [
 ]
 
 VALID_STATUSES = ["Active", "Deactive", "Block Listed"]
+
+# Where staff photos get written on disk. Adjust to match how your
+# other upload endpoints (vehicle/driver photos) are configured —
+# this should point at a directory that's actually served as static
+# files by your FastAPI app (e.g. app.mount("/uploads", StaticFiles(...))).
+UPLOAD_DIR = "uploads/staff"
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def _permissions_to_dict(permissions: StaffPermissions | None) -> dict:
@@ -59,6 +68,7 @@ def _format_user(user: Users, role: MasterRoles, permissions: StaffPermissions |
         "is_active":      user.is_active,
         "is_blocked":     user.is_blocked,
         "mobile_verified": user.mobile_verified,
+        "photo_url":      user.photo_url,
         "created_at":     user.created_at,
         "updated_at":     user.updated_at,
         "permissions":    _permissions_to_dict(permissions),
@@ -120,6 +130,7 @@ def create_staff(data, db: Session):
         city=data.city,
         pincode=data.pincode,
         status=data.status or "Active",
+        photo_url=data.photo_url or "",
         is_active=True,
         is_blocked=False,
         mobile_verified=False,
@@ -243,6 +254,10 @@ def update_staff(id: int, data, db: Session):
     user.status        = data.status or "Active"
     user.is_active     = data.is_active
     user.is_blocked    = (data.status == "Block Listed")
+    # Only overwrite photo_url if the caller actually sent one; keeps the
+    # existing photo intact when the edit form doesn't touch the photo field.
+    if data.photo_url is not None:
+        user.photo_url = data.photo_url
     user.updated_at    = datetime.utcnow()
 
     db.commit()
@@ -324,3 +339,29 @@ def reset_staff_password(id: int, data, db: Session):
     db.commit()
 
     return {"message": "Password Reset Successfully"}
+
+
+# =====================================================
+# UPLOAD STAFF PHOTO
+# =====================================================
+
+def upload_staff_photo(file: UploadFile) -> dict:
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}",
+        )
+
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+
+    with open(filepath, "wb") as f:
+        f.write(file.file.read())
+
+    # Adjust this path to match how your app serves static uploads
+    # (e.g. if app.mount("/uploads", StaticFiles(directory="uploads")),
+    # then the URL the frontend should hit is "/uploads/staff/<filename>").
+    return {"url": f"/uploads/staff/{filename}"}

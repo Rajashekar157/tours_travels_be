@@ -27,6 +27,19 @@ def _fmt_dt(val):
     return str(val)
 
 
+def _branch_name(branch):
+    """MasterBranch's display-name column isn't known for certain here —
+    try the common possibilities so this doesn't break if the column is
+    named differently than expected."""
+    if branch is None:
+        return None
+    for attr in ("branch_name", "name", "title"):
+        val = getattr(branch, attr, None)
+        if val:
+            return val
+    return None
+
+
 # ─────────────────────────────────────────────
 # Profile
 # ─────────────────────────────────────────────
@@ -37,14 +50,28 @@ def get_profile(db: Session, user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
 
     return {
-        "id":         user.id,
-        "full_name":  user.full_name,
-        "email":      user.email,
-        "mobile":     user.mobile,
-        "is_active":  user.is_active,
-        "role":       user.role.role_name if user.role else None,
-        "last_login": _fmt_dt(user.last_login),
-        "created_at": _fmt_dt(user.created_at),
+        "id":               user.id,
+        "full_name":        user.full_name,
+        "email":            user.email,
+        "mobile":           user.mobile,
+        "mobile_verified":  user.mobile_verified,
+        "photo_url":        user.photo_url,
+        "is_active":        user.is_active,
+        "is_blocked":       user.is_blocked,
+        "status":           user.status,
+        "role":             user.role.role_name if user.role else None,
+        "role_id":          user.role_id,
+        "staff_code":       user.staff_code,
+        "designation":      user.designation,
+        "service_state":    user.service_state,
+        "branch_id":        user.branch_id,
+        "branch_name":      _branch_name(user.branch),
+        "address":          user.address,
+        "city":             user.city,
+        "pincode":          user.pincode,
+        "last_login":       _fmt_dt(user.last_login),
+        "created_at":       _fmt_dt(user.created_at),
+        "updated_at":       _fmt_dt(user.updated_at),
     }
 
 
@@ -70,6 +97,14 @@ def update_profile(db: Session, user_id: int, payload: UpdateProfileRequest):
         if existing:
             raise HTTPException(status_code=400, detail="Mobile already in use")
         user.mobile = payload.mobile
+    if payload.designation is not None:
+        user.designation = payload.designation
+    if payload.address is not None:
+        user.address = payload.address
+    if payload.city is not None:
+        user.city = payload.city
+    if payload.pincode is not None:
+        user.pincode = payload.pincode
 
     user.updated_at = datetime.now()
     db.commit()

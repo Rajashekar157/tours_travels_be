@@ -36,6 +36,7 @@ class StaffCreate(BaseModel):
     city: Optional[str] = None
     pincode: Optional[str] = None
     status: Optional[str] = "Active"  # Active | Deactive | Block Listed
+    photo_url: Optional[str] = None
     permissions: StaffPermissionsSchema = StaffPermissionsSchema()
 
 
@@ -57,6 +58,7 @@ class StaffUpdate(BaseModel):
     pincode: Optional[str] = None
     status: Optional[str] = "Active"  # Active | Deactive | Block Listed
     is_active: bool = True
+    photo_url: Optional[str] = None
     permissions: StaffPermissionsSchema = StaffPermissionsSchema()
 
 
@@ -99,7 +101,16 @@ class StaffResponse(BaseModel):
     status: Optional[str] = None
     is_active: bool
     is_blocked: bool
+    photo_url: Optional[str] = None
     permissions: Optional[StaffPermissionsSchema] = None
 
     class Config:
         from_attributes = True
+
+
+# ==============================
+# PHOTO UPLOAD RESPONSE
+# ==============================
+
+class StaffPhotoUploadResponse(BaseModel):
+    url: str

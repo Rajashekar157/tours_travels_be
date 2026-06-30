@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
 from core.database import get_db
@@ -8,6 +8,7 @@ from schemas.staff_schema import (
     StaffUpdate,
     StaffStatusUpdate,
     StaffPasswordReset,
+    StaffPhotoUploadResponse,
 )
 
 from services.staff_service import (
@@ -19,6 +20,7 @@ from services.staff_service import (
     change_staff_status,
     reset_staff_password,
     get_roles,
+    upload_staff_photo,
 )
 
 router = APIRouter(
@@ -59,6 +61,17 @@ def fetch_roles(
     db: Session = Depends(get_db)
 ):
     return get_roles(db)
+
+
+# ======================================================
+# UPLOAD STAFF PHOTO — must come before /{id} too
+# ======================================================
+
+@router.post("/upload-photo", response_model=StaffPhotoUploadResponse)
+def upload_photo(
+    file: UploadFile = File(...)
+):
+    return upload_staff_photo(file)
 
 
 # ======================================================
