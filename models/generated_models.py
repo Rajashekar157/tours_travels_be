@@ -1,4 +1,4 @@
-Using pgvector 0.4.2
+
 from typing import Optional
 import datetime
 import decimal
