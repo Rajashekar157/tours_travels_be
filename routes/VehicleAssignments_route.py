@@ -53,18 +53,14 @@ def available_vehicles(db: Session = Depends(get_db)):
     return get_available_vehicles(db)
 
 
-@router.get("/available/drivers")
-def available_drivers(db: Session = Depends(get_db)):
-    """Returns all active drivers not currently on an active Dispatch."""
-    return get_available_drivers(db)
 
+@router.get("/available/drivers")
+def available_drivers(request: Request, db: Session = Depends(get_db)):
+    return get_available_drivers(db, request)
 
 @router.get("/available/suppliers")
-def available_suppliers(db: Session = Depends(get_db)):
-    """Returns all suppliers not currently on an active Dispatch."""
-    return get_available_suppliers(db)
-
-
+def available_suppliers(request: Request, db: Session = Depends(get_db)):
+    return get_available_suppliers(db, request)
 # =====================================================
 # CREATE  — created_by from JWT
 # =====================================================

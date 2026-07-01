@@ -165,39 +165,53 @@ def get_available_vehicles(db: Session):
     ]
 
 
-def get_available_drivers(db: Session):
+def get_available_drivers(db: Session, request: Request):
     """All active drivers NOT in an active Dispatch."""
     busy = _busy_driver_ids(db)
+    base_url = str(request.base_url).rstrip("/")
     drivers = db.query(Drivers).filter(Drivers.is_active == True).all()
-    return [
-        {
+
+    result = []
+    for d in drivers:
+        if d.id in busy:
+            continue
+        photo = d.driver_photo_url
+        if photo and not str(photo).startswith("http"):
+            photo = f"{base_url}/{str(photo).lstrip('/')}"
+        result.append({
             "id": d.id,
             "driver_code": d.driver_code,
             "full_name": d.full_name,
             "mobile": d.mobile,
             "supplier_type_id": d.supplier_type_id,
-        }
-        for d in drivers
-        if d.id not in busy
-    ]
+            "driver_photo_url": photo,
+        })
+    return result
 
 
-def get_available_suppliers(db: Session):
+def get_available_suppliers(db: Session, request: Request):
     """All suppliers NOT in an active Dispatch."""
     busy = _busy_supplier_ids(db)
+    base_url = str(request.base_url).rstrip("/")
     suppliers = db.query(Suppliers).all()
-    return [
-        {
+
+    result = []
+    for s in suppliers:
+        if s.id in busy:
+            continue
+        photo = s.photo_url  # Suppliers.photo_url — confirmed column name
+        if photo and not str(photo).startswith("http"):
+            photo = f"{base_url}/{str(photo).lstrip('/')}"
+        result.append({
             "id": s.id,
             "supplier_code": s.supplier_code,
             "supplier_name": s.supplier_name,
             "mobile": s.mobile,
             "supplier_type_id": s.supplier_type_id,
             "outstanding_amount": float(s.outstanding_amount) if s.outstanding_amount else None,
-        }
-        for s in suppliers
-        if s.id not in busy
-    ]
+            "supplier_photo_url": photo,
+        })
+    return result
 
 
 # =====================================================
