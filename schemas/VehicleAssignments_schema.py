@@ -1,25 +1,25 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime, date
+from datetime import datetime
 
 
 # =====================================================
 # CREATE
 # =====================================================
+
 class VehicleAssignmentCreate(BaseModel):
 
-    # Core
+    # Core — driver_id is optional: either driver OR supplier
     driver_id: Optional[int] = None
     vehicle_id: int
     supplier_id: Optional[int] = None
 
-    # New fields from form
     service_location_id: Optional[int] = None
     branch_id: Optional[int] = None
     vehicle_odometer_km: Optional[float] = None
     assignment_type: Optional[str] = None  # Dispatch / Handover / Recovery
 
-    # Photos
+    # Photos — paths returned by /upload-document
     allotment_document_photo: Optional[str] = None
     vehicle_photo_front: Optional[str] = None
     vehicle_photo_back: Optional[str] = None
@@ -28,6 +28,7 @@ class VehicleAssignmentCreate(BaseModel):
 
     remarks: Optional[str] = None
     created_by: Optional[int] = None
+
 
 # =====================================================
 # UPDATE
@@ -65,7 +66,8 @@ class VehicleAssignmentResponse(BaseModel):
     id: int
     unique_number: Optional[str] = None
 
-    driver_id: int
+    # driver_id is now nullable — either driver or supplier is present
+    driver_id: Optional[int] = None
     vehicle_id: int
     supplier_id: Optional[int] = None
 

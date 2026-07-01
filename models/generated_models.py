@@ -577,8 +577,7 @@ class Vehicles(Base):
         PrimaryKeyConstraint('id', name='vehicles_pkey'),
         UniqueConstraint('chassis_number', name='vehicles_chassis_number_key'),
         UniqueConstraint('engine_number', name='vehicles_engine_number_key'),
-        UniqueConstraint('vehicle_registration_number', name='vehicles_vehicle_registration_number_key'),
-        Index('idx_vehicles_insurance_expiry', 'insurance_expiry_date')
+        UniqueConstraint('vehicle_registration_number', name='vehicles_vehicle_registration_number_key')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -593,9 +592,6 @@ class Vehicles(Base):
     chassis_number: Mapped[Optional[str]] = mapped_column(String(100))
     gps_enabled: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('false'))
     fuel_issue_id: Mapped[Optional[int]] = mapped_column(Integer)
-    insurance_company: Mapped[Optional[str]] = mapped_column(String(150))
-    insurance_policy_number: Mapped[Optional[str]] = mapped_column(String(100))
-    insurance_expiry_date: Mapped[Optional[datetime.date]] = mapped_column(Date)
     status_id: Mapped[Optional[int]] = mapped_column(Integer)
     created_by: Mapped[Optional[int]] = mapped_column(Integer)
     updated_by: Mapped[Optional[int]] = mapped_column(Integer)
@@ -697,9 +693,9 @@ class VehicleAssignments(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    driver_id: Mapped[int] = mapped_column(Integer, nullable=False)
     vehicle_id: Mapped[int] = mapped_column(Integer, nullable=False)
     assigned_date: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
+    driver_id: Mapped[Optional[int]] = mapped_column(Integer)
     assignment_type: Mapped[Optional[str]] = mapped_column(String(50))
     relieved_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     is_active: Mapped[Optional[bool]] = mapped_column(Boolean, server_default=text('true'))
@@ -723,7 +719,7 @@ class VehicleAssignments(Base):
 
     branch: Mapped[Optional['MasterBranch']] = relationship('MasterBranch', back_populates='vehicle_assignments')
     users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicle_assignments')
-    driver: Mapped['Drivers'] = relationship('Drivers', back_populates='vehicle_assignments')
+    driver: Mapped[Optional['Drivers']] = relationship('Drivers', back_populates='vehicle_assignments')
     service_location: Mapped[Optional['MasterServiceLocation']] = relationship('MasterServiceLocation', back_populates='vehicle_assignments')
     supplier: Mapped[Optional['Suppliers']] = relationship('Suppliers', back_populates='vehicle_assignments')
     users_: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[updated_by], back_populates='vehicle_assignments_')

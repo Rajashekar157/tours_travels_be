@@ -43,10 +43,6 @@ class VehicleCreate(BaseModel):
     # Tax
     tax_status_id: int
 
-    # Insurance
-    insurance_company: Optional[str] = None
-    insurance_policy_number: Optional[str] = None
-    insurance_expiry_date: Optional[datetime.date] = None
 
     # Photo (stores the relative URL returned by /vehicles/upload-photo,
     # e.g. "/uploads/vehicles/<uuid>.jpg")
@@ -117,10 +113,6 @@ class VehicleUpdate(BaseModel):
     # Tax
     tax_status_id: Optional[int] = None
 
-    # Insurance
-    insurance_company: Optional[str] = None
-    insurance_policy_number: Optional[str] = None
-    insurance_expiry_date: Optional[datetime.date] = None
 
     # Photo
     vehicle_photo: Optional[str] = None

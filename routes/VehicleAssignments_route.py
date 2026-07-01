@@ -18,6 +18,9 @@ from services.VehicleAssignments_service import (
     upload_vehicle_assignment_document_service,
     get_vehicle_assignment_documents_service,
     attach_file_urls,
+    get_available_vehicles,
+    get_available_drivers,
+    get_available_suppliers,
 )
 
 router = APIRouter(
@@ -36,6 +39,30 @@ def upload_assignment_document(
     file: UploadFile = File(...),
 ):
     return upload_vehicle_assignment_document_service(field, file)
+
+
+# =====================================================
+# AVAILABILITY ENDPOINTS
+# Must come BEFORE /{assignment_id} routes so FastAPI
+# doesn't try to parse "available" as an integer.
+# =====================================================
+
+@router.get("/available/vehicles")
+def available_vehicles(db: Session = Depends(get_db)):
+    """Returns all vehicles not currently on an active Dispatch."""
+    return get_available_vehicles(db)
+
+
+@router.get("/available/drivers")
+def available_drivers(db: Session = Depends(get_db)):
+    """Returns all active drivers not currently on an active Dispatch."""
+    return get_available_drivers(db)
+
+
+@router.get("/available/suppliers")
+def available_suppliers(db: Session = Depends(get_db)):
+    """Returns all suppliers not currently on an active Dispatch."""
+    return get_available_suppliers(db)
 
 
 # =====================================================
