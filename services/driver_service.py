@@ -125,8 +125,21 @@ def create_driver_service(db, payload, current_user):
     return driver
 
 
-def get_drivers_service(db):
-    return db.query(Drivers).order_by(Drivers.id.desc()).all()
+def get_drivers_service(db, request: Request):
+    drivers = db.query(Drivers).order_by(Drivers.id.desc()).all()
+
+    result = []
+    for driver in drivers:
+        # Convert the ORM row to a plain dict of its own columns, then
+        # overwrite driver_photo_url with a fully-resolved absolute URL —
+        # the same treatment the /documents endpoint already gives it, so
+        # the frontend never has to guess how to build the path itself and
+        # can just render driver.driver_photo_url directly as an <img src>.
+        row = {c.name: getattr(driver, c.name) for c in driver.__table__.columns}
+        row["driver_photo_url"] = _build_file_url(request, driver.driver_photo_url)
+        result.append(row)
+
+    return result
 
 
 def get_driver_service(db, driver_id):

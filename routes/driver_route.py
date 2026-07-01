@@ -44,8 +44,11 @@ def create_driver(
 
 
 @router.get("/")
-def get_drivers(db: Session = Depends(get_db)):
-    return get_drivers_service(db)
+def get_drivers(
+    request: Request,                  # ← inject the request object so photo URLs can be resolved
+    db: Session = Depends(get_db),
+):
+    return get_drivers_service(db, request)
 
 
 @router.get("/search")
