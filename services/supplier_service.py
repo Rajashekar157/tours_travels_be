@@ -71,11 +71,6 @@ def create_supplier(db: Session, supplier):
         if existing_aadhaar:
             raise HTTPException(status_code=400, detail="Aadhaar number already exists")
 
-    if supplier.supplier_id:
-        existing_supplier_id = db.query(Suppliers).filter(Suppliers.supplier_id == supplier.supplier_id).first()
-        if existing_supplier_id:
-            raise HTTPException(status_code=400, detail="Supplier ID already exists")
-
     supplier_data = supplier.dict()
 
     # ── auto-generate supplier_code if not supplied ──────────────────────
