@@ -1,4 +1,4 @@
-
+Using pgvector 0.4.2
 from typing import Optional
 import datetime
 import decimal
@@ -245,14 +245,12 @@ class Suppliers(Base):
         PrimaryKeyConstraint('id', name='suppliers_pkey'),
         UniqueConstraint('aadhaar_number', name='suppliers_aadhaar_number_key'),
         UniqueConstraint('mobile', name='suppliers_mobile_key'),
-        UniqueConstraint('supplier_id', name='suppliers_supplier_id_key'),
         Index('idx_suppliers_branch_id', 'branch_id'),
         Index('idx_suppliers_outstanding', 'outstanding_amount'),
         Index('idx_suppliers_service_location_id', 'service_location_id')
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    supplier_id: Mapped[str] = mapped_column(String(50), nullable=False)
     supplier_name: Mapped[str] = mapped_column(String(150), nullable=False)
     mobile: Mapped[str] = mapped_column(String(15), nullable=False)
     permanent_address: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''::text"))
