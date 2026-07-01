@@ -189,7 +189,7 @@ def get_supplier_documents_service(db, supplier_id: int, request: Request):
         raise HTTPException(status_code=404, detail="Supplier not found")
 
     return {
-        "supplier_id": supplier.id,
+       
         "supplier_code": supplier.supplier_code,
         "supplier_name": supplier.supplier_name,
         "documents": {

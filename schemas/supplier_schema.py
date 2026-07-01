@@ -5,7 +5,6 @@ from datetime import date
 
 
 class SupplierCreate(BaseModel):
-    supplier_id: str
     supplier_code: Optional[str] = None
     supplier_name: str
 
@@ -125,7 +124,6 @@ class SupplierUpdate(BaseModel):
 
 class SupplierResponse(BaseModel):
     id: int
-    supplier_id: str
     supplier_code: Optional[str] = None
     supplier_name: str
 
