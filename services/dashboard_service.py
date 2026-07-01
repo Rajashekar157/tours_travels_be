@@ -9,33 +9,31 @@ QUERIES = {
         FROM dashboard_summary_mat
     """,
 
-    # Recent Assignments
-    "recent_assignments": """
-        SELECT
-            va.id,
-            v.vehicle_registration_number,
-            v.vehicle_display_number,
-            vmk.make_name AS vehicle_make,
-            vmd.model_name AS vehicle_model,
-            d.full_name,
-            d.mobile AS driver_mobile,
-            va.assignment_type,
-            va.assigned_date,
-            va.remarks,
-            va.is_active
-        FROM vehicle_assignments va
-        JOIN vehicles v
-            ON v.id = va.vehicle_id
-        LEFT JOIN master_vehicle_make vmk
-            ON vmk.id = v.vehicle_make_id
-        LEFT JOIN master_vehicle_model vmd
-            ON vmd.id = v.vehicle_model_id
-        JOIN drivers d
-            ON d.id = va.driver_id
-        ORDER BY va.assigned_date DESC
-        LIMIT 10
-    """,
-
+  "recent_assignments": """
+    SELECT
+        va.id,
+        v.vehicle_registration_number,
+        v.vehicle_display_number,
+        vmk.make_name AS vehicle_make,
+        vmd.model_name AS vehicle_model,
+        d.full_name,
+        d.mobile AS driver_mobile,
+        va.assignment_type,
+        va.assigned_date,
+        va.remarks,
+        va.is_active
+    FROM vehicle_assignments va
+    JOIN vehicles v
+        ON v.id = va.vehicle_id
+    LEFT JOIN master_vehicle_make vmk
+        ON vmk.id = v.vehicle_make_id
+    LEFT JOIN master_vehicle_model vmd
+        ON vmd.id = v.vehicle_model_id
+    LEFT JOIN drivers d
+        ON d.id = va.driver_id
+    ORDER BY va.assigned_date DESC
+    LIMIT 10
+""",
     # License Expiry
     "license_expiry": """
         SELECT
