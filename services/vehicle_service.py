@@ -19,6 +19,7 @@ from models.generated_models import (
     Suppliers
 )
 from schemas.vehicle_schema import VehicleCreate, VehicleUpdate
+from utils.code_generators import generate_vehicle_code
 
 
 def create_vehicle(data: VehicleCreate, db: Session, current_user):
@@ -38,7 +39,10 @@ def create_vehicle(data: VehicleCreate, db: Session, current_user):
                 detail="Vehicle already exists"
             )
 
+        vehicle_code = generate_vehicle_code(db)
+
         vehicle = Vehicles(
+            vehicle_code=vehicle_code,
             service_location_id=data.service_location_id,
             company_id=data.company_id,
             vehicle_make_id=data.vehicle_make_id,
@@ -66,6 +70,9 @@ def create_vehicle(data: VehicleCreate, db: Session, current_user):
         db.commit()
         db.refresh(vehicle)
         return vehicle
+
+    except HTTPException:
+        raise
 
     except SQLAlchemyError as e:
         db.rollback()
@@ -96,7 +103,13 @@ def update_vehicle(vehicle_id: int, data: VehicleUpdate, db: Session, current_us
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
 
-    for key, value in data.model_dump(exclude_unset=True).items():
+    # vehicle_code is auto-generated and never user-editable — strip it out
+    # even if it somehow arrives in the update payload (e.g. a stale form
+    # object that had vehicle_code spread into it from a GET response).
+    update_data = data.model_dump(exclude_unset=True)
+    update_data.pop("vehicle_code", None)
+
+    for key, value in update_data.items():
         setattr(vehicle, key, value)
 
     vehicle.updated_by = current_user["user_id"]

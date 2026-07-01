@@ -43,7 +43,6 @@ class VehicleCreate(BaseModel):
     # Tax
     tax_status_id: int
 
-
     # Photo (stores the relative URL returned by /vehicles/upload-photo,
     # e.g. "/uploads/vehicles/<uuid>.jpg")
     vehicle_photo: Optional[str] = None
@@ -112,7 +111,6 @@ class VehicleUpdate(BaseModel):
 
     # Tax
     tax_status_id: Optional[int] = None
-
 
     # Photo
     vehicle_photo: Optional[str] = None

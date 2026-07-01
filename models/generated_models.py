@@ -604,6 +604,7 @@ class Vehicles(Base):
     transmission_type_id: Mapped[Optional[int]] = mapped_column(Integer)
     tax_status_id: Mapped[Optional[int]] = mapped_column(Integer)
     company_id: Mapped[Optional[int]] = mapped_column(Integer)
+    vehicle_code: Mapped[Optional[str]] = mapped_column(String(50))
 
     company: Mapped[Optional['MasterCompany']] = relationship('MasterCompany', back_populates='vehicles')
     users: Mapped[Optional['Users']] = relationship('Users', foreign_keys=[created_by], back_populates='vehicles')

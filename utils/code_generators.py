@@ -15,6 +15,5 @@ def generate_supplier_code(db: Session) -> str:
 
 
 def generate_vehicle_code(db: Session) -> str:
-    """VEH-01, VEH-02, ..."""
     result = db.execute(text("SELECT nextval('vehicle_code_seq')")).scalar()
-    return f"VEH-{str(result).zfill(6)}"
+    return f"VEH-{str(result).zfill(2)}"
