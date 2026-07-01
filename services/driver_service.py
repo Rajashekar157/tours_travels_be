@@ -1,7 +1,20 @@
+import os
+import shutil
+import uuid
+
 from fastapi import HTTPException, Request
 from models.generated_models import Drivers, MasterBranch, MasterServiceLocation, MasterSupplierType
 from fastapi import UploadFile, File, HTTPException
+
 UPLOAD_ROOT = "uploads/drivers"  # relative to app's cwd, matches your StaticFiles mount
+
+ALLOWED_DOCUMENT_FIELDS = {
+    "adhaar_url", "license_file_url", "pancard_file_url",
+    "bank_passbook_photo_url", "gas_bill_photo_url",
+    "electricity_bill_photo_url", "driver_photo_url",
+}
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".pdf"}
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -185,77 +198,55 @@ def get_driver_documents_service(db, driver_id: int, request: Request):
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")
 
+    documents = {
+        "adhaar_url": _build_file_url(request, driver.adhaar_url),
+        "license_file_url": _build_file_url(request, driver.license_file_url),
+        "pancard_file_url": _build_file_url(request, driver.pancard_file_url),
+        "bank_passbook_photo_url": _build_file_url(request, driver.bank_passbook_photo_url),
+        "gas_bill_photo_url": _build_file_url(request, driver.gas_bill_photo_url),
+        "electricity_bill_photo_url": _build_file_url(request, driver.electricity_bill_photo_url),
+        "driver_photo_url": _build_file_url(request, driver.driver_photo_url),
+    }
+
     return {
         "driver_id": driver.id,
         "driver_code": driver.driver_code,
         "full_name": driver.full_name,
-        "documents": {
-            "adhaar_url": _build_file_url(request, driver.adhaar_url),
-            "license_file_url": _build_file_url(request, driver.license_file_url),
-            "pancard_file_url": _build_file_url(request, driver.pancard_file_url),
-            "bank_passbook_photo_url": _build_file_url(request, driver.bank_passbook_photo_url),
-            "gas_bill_photo_url": _build_file_url(request, driver.gas_bill_photo_url),
-            "electricity_bill_photo_url": _build_file_url(request, driver.electricity_bill_photo_url),
-            "driver_photo_url": _build_file_url(request, driver.driver_photo_url),
-        }
+        "documents": documents,
+        "total_uploaded": sum(1 for v in documents.values() if v),
+        "total_fields": len(documents),
     }
 
 
+def upload_driver_document_service(db, driver_id: int, field: str, file: UploadFile):
+    driver = db.query(Drivers).filter(Drivers.id == driver_id).first()
+    if not driver:
+        raise HTTPException(status_code=404, detail="Driver not found")
 
-# def upload_driver_document_service(db, field: str, file: UploadFile):
-#     driver = db.query(Drivers).filter(Drivers.id == driver_id).first()
-#     if not driver:
-#         raise HTTPException(status_code=404, detail="Driver not found")
+    if field not in ALLOWED_DOCUMENT_FIELDS:
+        raise HTTPException(status_code=400, detail="Invalid document field")
 
-#     allowed_fields = {
-#         "adhaar_url", "license_file_url", "pancard_file_url",
-#         "bank_passbook_photo_url", "gas_bill_photo_url",
-#         "electricity_bill_photo_url", "driver_photo_url",
-#     }
-#     if field not in allowed_fields:
-#         raise HTTPException(status_code=400, detail="Invalid document field")
-
-#     os.makedirs(UPLOAD_ROOT, exist_ok=True)
-
-#     ext = os.path.splitext(file.filename)[1]
-#     filename = f"{field}_{driver_id}{ext}"
-#     disk_path = os.path.join(UPLOAD_ROOT, filename)
-
-#     with open(disk_path, "wb") as buffer:
-#         shutil.copyfileobj(file.file, buffer)
-
-#     # Stored relative path — _build_file_url() turns this into a full URL later
-#     stored_path = f"uploads/drivers/{filename}"
-#     setattr(driver, field, stored_path)
-
-#     db.commit()
-#     db.refresh(driver)
-#     return driver
-
-
-
-def upload_driver_document_service(field: str, file: UploadFile):
-    import os
-    import shutil
-    import uuid
-
-    UPLOAD_ROOT = "uploads/drivers"
-    os.makedirs(UPLOAD_ROOT, exist_ok=True)
-
-    ext = os.path.splitext(file.filename)[1].lower()
-
-    if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail="Only JPG, JPEG, PNG and WEBP files are allowed"
+            detail="Only JPG, JPEG, PNG, WEBP and PDF files are allowed",
         )
 
-    filename = f"{uuid.uuid4().hex}{ext}"
-    filepath = os.path.join(UPLOAD_ROOT, filename)
+    os.makedirs(UPLOAD_ROOT, exist_ok=True)
 
-    with open(filepath, "wb") as buffer:
+    # UUID keeps filenames unique per upload (avoids stale browser/CDN caching
+    # on replace) while still being traceable back to the driver + field.
+    filename = f"{field}_{driver_id}_{uuid.uuid4().hex}{ext}"
+    disk_path = os.path.join(UPLOAD_ROOT, filename)
+
+    with open(disk_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return {
-        "url": f"/uploads/drivers/{filename}"
-    }
+    # Stored relative path — _build_file_url() turns this into a full URL later
+    stored_path = f"uploads/drivers/{filename}"
+    setattr(driver, field, stored_path)
+
+    db.commit()
+    db.refresh(driver)
+    return driver
