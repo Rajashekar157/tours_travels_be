@@ -38,6 +38,9 @@ def fetch_supplier_types(db: Session = Depends(get_db)):
     return get_supplier_types(db)
 
 
+@router.get("/list/suppliers")
+def list_suppliers(request: Request, db: Session = Depends(get_db)):
+    return get_suppliers(db, request)
 # =========================
 # MASTER SERVICE LOCATION
 # =========================

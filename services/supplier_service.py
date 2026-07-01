@@ -91,9 +91,14 @@ def create_supplier(db: Session, supplier):
 
     return new_supplier
 
-def get_suppliers(db: Session):
-    return db.query(Suppliers).order_by(Suppliers.id.desc()).all()
+# def get_suppliers(db: Session):
+#     return db.query(Suppliers).order_by(Suppliers.id.desc()).all()
 
+
+
+def get_suppliers(db: Session, request: Request):
+    suppliers = db.query(Suppliers).order_by(Suppliers.id.desc()).all()
+    return [attach_file_urls(s, request) for s in suppliers]
 
 def get_supplier(db: Session, supplier_id: int):
     return db.query(Suppliers).filter(Suppliers.id == supplier_id).first()
