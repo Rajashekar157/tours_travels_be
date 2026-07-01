@@ -41,6 +41,8 @@ def fetch_supplier_types(db: Session = Depends(get_db)):
 @router.get("/list/suppliers")
 def list_suppliers(request: Request, db: Session = Depends(get_db)):
     return get_suppliers(db, request)
+
+
 # =========================
 # MASTER SERVICE LOCATION
 # =========================
@@ -94,10 +96,10 @@ def fetch_suppliers(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    suppliers = get_suppliers(db, request)   # ← pass request through
-    return [attach_file_urls(s, request) for s in suppliers]
+    suppliers = get_suppliers(db, request)
+    return suppliers
 
-    
+
 # ── Must come BEFORE /{supplier_id} so FastAPI doesn't match "documents" as an int ──
 @router.get("/{supplier_id}/documents")
 def get_supplier_documents(

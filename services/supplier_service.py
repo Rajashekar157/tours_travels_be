@@ -11,6 +11,7 @@ from models.generated_models import (
     MasterServiceLocation,
     MasterBranch,
 )
+from utils.code_generators import generate_supplier_code
 
 UPLOAD_ROOT = "uploads/suppliers"  # relative to app's cwd, matches StaticFiles mount
 
@@ -41,7 +42,7 @@ def _build_file_url(request: Request, path: str | None) -> str | None:
     if path.startswith("http://") or path.startswith("https://"):
         return path
     clean = path.lstrip("/")
-    base  = str(request.base_url).rstrip("/")
+    base = str(request.base_url).rstrip("/")
     return f"{base}/{clean}"
 
 
@@ -56,6 +57,9 @@ def attach_file_urls(supplier: Suppliers, request: Request) -> Suppliers:
     return supplier
 
 
+# =========================
+# CREATE SUPPLIER
+# =========================
 
 def create_supplier(db: Session, supplier):
     existing_mobile = db.query(Suppliers).filter(Suppliers.mobile == supplier.mobile).first()
@@ -67,18 +71,33 @@ def create_supplier(db: Session, supplier):
         if existing_aadhaar:
             raise HTTPException(status_code=400, detail="Aadhaar number already exists")
 
-    if supplier.supplier_code:
-        existing_code = db.query(Suppliers).filter(Suppliers.supplier_code == supplier.supplier_code).first()
-        if existing_code:
-            raise HTTPException(status_code=400, detail="Supplier code already exists")
-
     if supplier.supplier_id:
         existing_supplier_id = db.query(Suppliers).filter(Suppliers.supplier_id == supplier.supplier_id).first()
         if existing_supplier_id:
             raise HTTPException(status_code=400, detail="Supplier ID already exists")
 
+    supplier_data = supplier.dict()
+
+    # ── auto-generate supplier_code if not supplied ──────────────────────
+    provided_code = (supplier_data.get("supplier_code") or "").strip()
+
+    if not provided_code:
+        for _ in range(5):
+            candidate = generate_supplier_code(db)
+            clash = db.query(Suppliers).filter(Suppliers.supplier_code == candidate).first()
+            if not clash:
+                supplier_data["supplier_code"] = candidate
+                break
+        else:
+            raise HTTPException(status_code=500, detail="Could not generate a unique supplier code")
+    else:
+        existing_code = db.query(Suppliers).filter(Suppliers.supplier_code == provided_code).first()
+        if existing_code:
+            raise HTTPException(status_code=400, detail="Supplier code already exists")
+        supplier_data["supplier_code"] = provided_code
+
     try:
-        new_supplier = Suppliers(**supplier.dict())
+        new_supplier = Suppliers(**supplier_data)
         db.add(new_supplier)
         db.commit()
         db.refresh(new_supplier)
@@ -91,14 +110,11 @@ def create_supplier(db: Session, supplier):
 
     return new_supplier
 
-# def get_suppliers(db: Session):
-#     return db.query(Suppliers).order_by(Suppliers.id.desc()).all()
-
-
 
 def get_suppliers(db: Session, request: Request):
     suppliers = db.query(Suppliers).order_by(Suppliers.id.desc()).all()
     return [attach_file_urls(s, request) for s in suppliers]
+
 
 def get_supplier(db: Session, supplier_id: int):
     return db.query(Suppliers).filter(Suppliers.id == supplier_id).first()
@@ -111,6 +127,10 @@ def update_supplier(db: Session, supplier_id: int, supplier_data):
         return None
 
     update_data = supplier_data.dict(exclude_unset=True)
+
+    # if someone tries to blank out supplier_code on update, ignore it
+    if "supplier_code" in update_data and not (update_data["supplier_code"] or "").strip():
+        update_data.pop("supplier_code")
 
     for key, value in update_data.items():
         setattr(supplier, key, value)
