@@ -28,6 +28,14 @@ FILE_FIELDS = [
     "vehicle_photo_right",
 ]
 
+# Driver/supplier photo fields — pulled from related tables, not
+# stored directly on VehicleAssignments, so they need the same
+# url-prefixing pass as FILE_FIELDS (see attach_file_urls below).
+PHOTO_URL_FIELDS = [
+    "driver_photo_url",
+    "supplier_photo_url",
+]
+
 
 # =====================================================
 # AUTO GENERATE UNIQUE NUMBER  →  VUP-01, VUP-02 ...
@@ -79,7 +87,7 @@ def upload_vehicle_assignment_document_service(field: str, file: UploadFile):
 
 def attach_file_urls(assignment_dict: dict, request: Request) -> dict:
     base_url = str(request.base_url).rstrip("/")
-    for field in FILE_FIELDS:
+    for field in FILE_FIELDS + PHOTO_URL_FIELDS:
         value = assignment_dict.get(field)
         if value and not str(value).startswith("http"):
             assignment_dict[field] = f"{base_url}/{value.lstrip('/')}"
@@ -343,12 +351,14 @@ def get_vehicle_assignments(db: Session):
             "full_name": x.driver.full_name if x.driver else None,
             "mobile": x.driver.mobile if x.driver else None,
             "email": x.driver.email if x.driver else None,
+            "driver_photo_url": x.driver.driver_photo_url if x.driver else None,
             "vehicle_no": x.vehicle.vehicle_registration_number,
             "display_no": x.vehicle.vehicle_display_number,
             "supplier_name": x.supplier.supplier_name if x.supplier else None,
             "supplier_code": x.supplier.supplier_code if x.supplier else None,
             "supplier_mobile": x.supplier.mobile if x.supplier else None,
             "supplier_type_id": x.supplier.supplier_type_id if x.supplier else None,
+            "supplier_photo_url": x.supplier.photo_url if x.supplier else None,
             "outstanding_amount": float(x.supplier.outstanding_amount) if x.supplier and x.supplier.outstanding_amount else None,
             "service_location_id": x.service_location_id,
             "branch_id": x.branch_id,
@@ -391,12 +401,14 @@ def get_vehicle_assignment(assignment_id: int, db: Session):
         "driver_code": x.driver.driver_code if x.driver else None,
         "full_name": x.driver.full_name if x.driver else None,
         "mobile": x.driver.mobile if x.driver else None,
+        "driver_photo_url": x.driver.driver_photo_url if x.driver else None,
         "vehicle_no": x.vehicle.vehicle_registration_number,
         "display_no": x.vehicle.vehicle_display_number,
         "supplier_name": x.supplier.supplier_name if x.supplier else None,
         "supplier_code": x.supplier.supplier_code if x.supplier else None,
         "supplier_mobile": x.supplier.mobile if x.supplier else None,
         "supplier_type_id": x.supplier.supplier_type_id if x.supplier else None,
+        "supplier_photo_url": x.supplier.photo_url if x.supplier else None,
         "outstanding_amount": float(x.supplier.outstanding_amount) if x.supplier and x.supplier.outstanding_amount else None,
         "service_location_id": x.service_location_id,
         "branch_id": x.branch_id,
