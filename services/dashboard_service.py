@@ -57,7 +57,6 @@
 #         "outstanding_suppliers": suppliers.mappings().all(),
 #     }
 
-
 from concurrent.futures import ThreadPoolExecutor
 from sqlalchemy import text
 from core.database import SessionLocal
@@ -94,18 +93,6 @@ QUERIES = {
             ON d.id = va.driver_id
         ORDER BY va.assigned_date DESC
         LIMIT 10
-    """,
-
-    # Insurance Expiry
-    "insurance_expiry": """
-        SELECT
-            vehicle_registration_number,
-            insurance_expiry_date
-        FROM vehicles
-        WHERE insurance_expiry_date
-        BETWEEN CURRENT_DATE
-            AND CURRENT_DATE + INTERVAL '30 days'
-        ORDER BY insurance_expiry_date
     """,
 
     # License Expiry
@@ -156,7 +143,6 @@ async def get_dashboard_data_service(db=None):
     return {
         "summary": summary[0] if summary else {},
         "recent_assignments": results.get("recent_assignments", []),
-        "insurance_expiry": results.get("insurance_expiry", []),
         "license_expiry": results.get("license_expiry", []),
         "outstanding_suppliers": results.get("outstanding_suppliers", [])
     }
