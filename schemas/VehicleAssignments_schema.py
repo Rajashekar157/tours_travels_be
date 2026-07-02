@@ -82,6 +82,16 @@ class VehicleAssignmentResponse(BaseModel):
     transaction_id: Optional[str] = None
     transaction_date: Optional[datetime] = None
 
+    # Chain — every row in one vehicle's Dispatch -> Handover -> Recovery
+    # lifecycle shares this value, independent of each row's own
+    # unique_number. Set once at the Dispatch and inherited down the chain.
+    chain_id: Optional[str] = None
+
+    # Direct parent link — set only on Handover/Recovery rows; points back
+    # to the specific row (Dispatch or prior stage) this one closed out.
+    parent_assignment_id: Optional[int] = None
+    parent_unique_number: Optional[str] = None
+
     allotment_document_photo: Optional[str] = None
     vehicle_photo_front: Optional[str] = None
     vehicle_photo_back: Optional[str] = None

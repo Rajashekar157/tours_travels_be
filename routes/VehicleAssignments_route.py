@@ -13,6 +13,7 @@ from services.VehicleAssignments_service import (
     create_vehicle_assignment,
     get_vehicle_assignments,
     get_vehicle_assignment,
+    get_assignment_chain,
     update_vehicle_assignment,
     delete_vehicle_assignment,
     upload_vehicle_assignment_document_service,
@@ -53,14 +54,16 @@ def available_vehicles(db: Session = Depends(get_db)):
     return get_available_vehicles(db)
 
 
-
 @router.get("/available/drivers")
 def available_drivers(request: Request, db: Session = Depends(get_db)):
     return get_available_drivers(db, request)
 
+
 @router.get("/available/suppliers")
 def available_suppliers(request: Request, db: Session = Depends(get_db)):
     return get_available_suppliers(db, request)
+
+
 # =====================================================
 # CREATE  — created_by from JWT
 # =====================================================
@@ -91,7 +94,9 @@ def get_assignments(
     return [attach_file_urls(a, request) for a in assignments]
 
 
-# ── Must come BEFORE /{assignment_id} so FastAPI doesn't match "documents" as an int ──
+# ── Must come BEFORE /{assignment_id} so FastAPI doesn't match
+# "documents" or "chain" as an int ──
+
 @router.get("/{assignment_id}/documents")
 def get_assignment_documents(
     assignment_id: int,
@@ -99,6 +104,19 @@ def get_assignment_documents(
     db: Session = Depends(get_db),
 ):
     return get_vehicle_assignment_documents_service(db, assignment_id, request)
+
+
+@router.get("/chain/{chain_id}")
+def get_chain(
+    chain_id: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Returns every row (Dispatch, Handover, Recovery, ...) that belongs to
+    one vehicle's lifecycle, ordered chronologically — the full audit
+    trail for a chain_id like 'CHN-000058'.
+    """
+    return get_assignment_chain(chain_id, db)
 
 
 # =====================================================
